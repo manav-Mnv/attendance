@@ -4,30 +4,36 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FaceAttend — Lab Attendance System</title>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Share+Tech+Mono&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap"
-    rel="stylesheet">
+  <title>Swift Coding Club — Attendance</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #070b12;
-      --surface: #0d1421;
-      --surface2: #111827;
-      --border: #1c2d42;
-      --border2: #243448;
-      --accent: #00d4ff;
-      --accent-dim: rgba(0, 212, 255, 0.15);
-      --accent-glow: rgba(0, 212, 255, 0.4);
-      --purple: #8b5cf6;
-      --success: #00ffa3;
-      --error: #ff4066;
-      --warn: #ffb020;
-      --text: #c8deff;
-      --text2: #7a9ab8;
-      --muted: #2d4460;
-      --font-display: 'Orbitron', sans-serif;
-      --font-mono: 'Share Tech Mono', monospace;
-      --font-body: 'DM Sans', sans-serif;
+      --bg: #000000;
+      --surface: rgba(28,28,30,0.85);
+      --surface2: rgba(44,44,46,0.7);
+      --surface3: rgba(58,58,60,0.5);
+      --border: rgba(255,255,255,0.08);
+      --border2: rgba(255,255,255,0.12);
+      --accent: #F05138;
+      --accent-dim: rgba(240,81,56,0.12);
+      --accent-glow: rgba(240,81,56,0.35);
+      --accent2: #FF6B52;
+      --success: #32D74B;
+      --error: #FF453A;
+      --warn: #FFD60A;
+      --blue: #0A84FF;
+      --text: #FFFFFF;
+      --text2: #EBEBF599;
+      --text3: #EBEBF54D;
+      --muted: rgba(235,235,245,0.18);
+      --radius: 16px;
+      --radius-sm: 10px;
+      --radius-pill: 999px;
+      --blur: blur(24px) saturate(1.8);
+      --font: 'Inter', -apple-system, 'SF Pro Display', sans-serif;
+      --font-display: 'Inter', sans-serif;
+      --font-mono: 'SF Mono', 'Fira Code', monospace;
+      --font-body: 'Inter', sans-serif;
     }
 
     *,
@@ -46,18 +52,29 @@
     body {
       background: var(--bg);
       color: var(--text);
-      font-family: var(--font-body);
+      font-family: var(--font);
+      -webkit-font-smoothing: antialiased;
       overflow-x: hidden;
     }
 
     body::before {
       content: '';
       position: fixed;
+      width: 900px; height: 900px;
+      top: -200px; left: 50%;
+      transform: translateX(-50%);
+      background: radial-gradient(circle, rgba(240,81,56,0.08) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
       inset: 0;
       background-image:
-        linear-gradient(rgba(0, 212, 255, 0.025) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0, 212, 255, 0.025) 1px, transparent 1px);
-      background-size: 48px 48px;
+        radial-gradient(circle at 20% 80%, rgba(240,81,56,0.04) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(10,132,255,0.04) 0%, transparent 50%);
       pointer-events: none;
       z-index: 0;
     }
@@ -68,99 +85,96 @@
       min-height: 100vh;
     }
 
+    /* ─── GLASS ─── */
+    .glass {
+      background: var(--surface);
+      backdrop-filter: var(--blur);
+      -webkit-backdrop-filter: var(--blur);
+      border: 1px solid var(--border2);
+    }
+    .glass-light {
+      background: var(--surface2);
+      backdrop-filter: var(--blur);
+      -webkit-backdrop-filter: var(--blur);
+      border: 1px solid var(--border);
+    }
+
     /* ─── BUTTONS ─── */
     .btn {
-      font-family: var(--font-mono);
-      font-size: 13px;
-      letter-spacing: .05em;
-      padding: 10px 22px;
-      border-radius: 6px;
+      font-family: var(--font);
+      font-size: 15px;
+      font-weight: 600;
+      padding: 13px 26px;
+      border-radius: var(--radius-pill);
       border: none;
       cursor: pointer;
-      transition: all .2s;
+      transition: all .2s cubic-bezier(.34,1.56,.64,1);
+      letter-spacing: -0.01em;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
     }
 
     .btn-primary {
-      background: var(--accent);
-      color: #000;
-      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent), #FF6B52);
+      color: #fff;
+      box-shadow: 0 4px 20px rgba(240,81,56,0.3);
     }
-
     .btn-primary:hover {
-      box-shadow: 0 0 20px var(--accent-glow);
-      transform: translateY(-1px);
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 8px 30px rgba(240,81,56,0.45);
     }
-
-    .btn-primary:disabled {
-      opacity: .4;
-      cursor: not-allowed;
-      transform: none;
-      box-shadow: none;
-    }
+    .btn-primary:active { transform: scale(0.98); }
+    .btn-primary:disabled { opacity:.4; cursor:not-allowed; transform:none; box-shadow:none; }
 
     .btn-ghost {
-      background: transparent;
-      color: var(--accent);
+      background: var(--surface2);
+      color: var(--text);
       border: 1px solid var(--border2);
     }
-
-    .btn-ghost:hover {
-      border-color: var(--accent);
-      background: var(--accent-dim);
-    }
+    .btn-ghost:hover { background: var(--surface3); border-color: var(--border2); }
 
     .btn-danger {
-      background: var(--error);
-      color: #fff;
+      background: rgba(255,69,58,0.15);
+      color: var(--error);
+      border: 1px solid rgba(255,69,58,0.3);
     }
+    .btn-danger:hover { background: rgba(255,69,58,0.25); }
 
-    .btn-danger:hover {
-      box-shadow: 0 0 15px rgba(255, 64, 102, .4);
-    }
-
-    .btn-sm {
-      padding: 6px 14px;
-      font-size: 12px;
-    }
+    .btn-sm { padding: 8px 18px; font-size: 13px; }
+    .btn-xs { padding: 5px 13px; font-size: 12px; }
 
     /* ─── INPUTS ─── */
-    .field {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
+    .field { display:flex; flex-direction:column; gap:7px; }
 
     .field label {
-      font-family: var(--font-mono);
-      font-size: 11px;
+      font-size: 12px;
+      font-weight: 600;
       color: var(--text2);
-      letter-spacing: .08em;
+      letter-spacing: 0.04em;
       text-transform: uppercase;
     }
 
-    .field input,
-    .field select {
-      background: var(--surface2);
+    .field input, .field select, .field textarea {
+      background: rgba(255,255,255,0.06);
       border: 1px solid var(--border2);
-      border-radius: 6px;
+      border-radius: var(--radius-sm);
       color: var(--text);
-      font-family: var(--font-body);
-      font-size: 14px;
-      padding: 10px 14px;
-      transition: border-color .2s, box-shadow .2s;
+      font-family: var(--font);
+      font-size: 15px;
+      padding: 12px 16px;
+      transition: all .2s;
       width: 100%;
     }
-
-    .field input:focus,
-    .field select:focus {
+    .field input:focus, .field select:focus {
       outline: none;
       border-color: var(--accent);
-      box-shadow: 0 0 0 3px var(--accent-dim);
+      background: rgba(240,81,56,0.06);
+      box-shadow: 0 0 0 3px rgba(240,81,56,0.12);
     }
-
-    .field input::placeholder {
-      color: var(--muted);
-    }
+    .field input::placeholder { color: var(--text3); }
+    .field select option { background: #1c1c1e; color:#fff; }
 
     /* ─── SETUP PAGE ─── */
     #page-setup {
@@ -172,125 +186,86 @@
     }
 
     .setup-card {
-      background: var(--surface);
-      border: 1px solid var(--border2);
-      border-radius: 16px;
-      padding: 48px;
+      border-radius: 24px;
+      padding: 52px;
       width: 100%;
-      max-width: 580px;
+      max-width: 600px;
     }
 
-    .setup-logo {
-      font-family: var(--font-display);
-      font-size: 28px;
-      font-weight: 900;
-      color: var(--accent);
-      letter-spacing: .08em;
-      text-shadow: 0 0 30px var(--accent-glow);
+    .swift-logo {
+      display: flex; align-items: center; gap: 12px;
       margin-bottom: 8px;
     }
-
-    .setup-sub {
-      font-size: 14px;
-      color: var(--text2);
-      margin-bottom: 36px;
+    .swift-logo-icon {
+      width: 48px; height: 48px;
+      border-radius: 12px;
+      overflow: hidden;
+      flex-shrink: 0;
+      box-shadow: 0 4px 20px rgba(240,81,56,0.4);
+    }
+    .swift-logo-icon img {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+    }
+    .swift-logo-text {
+      font-size: 26px; font-weight: 800; letter-spacing: -0.03em;
+      background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.7) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .swift-logo-text span {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
 
-    .steps {
-      display: flex;
-      flex-direction: column;
-      gap: 28px;
-    }
-
-    .step {
-      display: flex;
-      gap: 16px;
-    }
+    .setup-sub { font-size:14px; color:var(--text2); margin-bottom:36px; }
+    .steps { display:flex; flex-direction:column; gap:28px; }
+    .step { display:flex; gap:16px; }
 
     .step-num {
-      font-family: var(--font-mono);
-      font-size: 12px;
-      color: var(--bg);
-      background: var(--accent);
-      width: 26px;
-      height: 26px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      font-weight: 700;
-      margin-top: 2px;
+      font-size:12px; font-weight:700; color:#000;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      width:28px; height:28px; border-radius:50%;
+      display:flex; align-items:center; justify-content:center;
+      flex-shrink:0; margin-top:2px;
+      box-shadow: 0 3px 12px rgba(240,81,56,0.4);
     }
 
-    .step-body {
-      flex: 1;
-    }
-
-    .step-title {
-      font-size: 15px;
-      font-weight: 600;
-      margin-bottom: 8px;
-    }
-
-    .step-desc {
-      font-size: 13px;
-      color: var(--text2);
-      line-height: 1.6;
-      margin-bottom: 12px;
-    }
+    .step-body { flex:1; }
+    .step-title { font-size:15px; font-weight:700; margin-bottom:8px; }
+    .step-desc { font-size:13px; color:var(--text2); line-height:1.65; margin-bottom:12px; }
 
     .sql-box {
-      background: #060a10;
+      background: rgba(0,0,0,0.6);
       border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 16px;
+      border-radius: 12px;
+      padding: 18px;
       font-family: var(--font-mono);
       font-size: 11.5px;
-      color: #7dd3fc;
+      color: #64D2FF;
       white-space: pre;
       overflow-x: auto;
       position: relative;
     }
 
     .copy-btn {
-      position: absolute;
-      top: 8px;
-      right: 8px;
-      background: var(--border2);
-      border: none;
-      border-radius: 4px;
-      color: var(--text2);
-      font-family: var(--font-mono);
-      font-size: 11px;
-      padding: 4px 10px;
-      cursor: pointer;
+      position:absolute; top:10px; right:10px;
+      background: rgba(255,255,255,0.1);
+      border:1px solid var(--border2);
+      border-radius:8px;
+      color:var(--text2);
+      font-family:var(--font);
+      font-size:11px; font-weight:600;
+      padding:5px 12px;
+      cursor:pointer;
     }
+    .copy-btn:hover { background:rgba(255,255,255,0.15); color:#fff; }
 
-    .copy-btn:hover {
-      background: var(--muted);
-      color: var(--text);
-    }
-
-    .step-fields {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-
-    #setup-error {
-      color: var(--error);
-      font-size: 13px;
-      font-family: var(--font-mono);
-      display: none;
-    }
-
-    #setup-success {
-      color: var(--success);
-      font-size: 13px;
-      font-family: var(--font-mono);
-      display: none;
-    }
+    .step-fields { display:flex; flex-direction:column; gap:14px; }
+    #setup-error { color:var(--error); font-size:13px; display:none; }
+    #setup-success { color:var(--success); font-size:13px; display:none; }
 
     /* ─── KIOSK PAGE ─── */
     #page-kiosk {
@@ -323,291 +298,176 @@
       font-weight: 900;
       color: var(--accent);
       letter-spacing: .1em;
-      text-shadow: 0 0 20px var(--accent-glow);
+      text-shadow: none;
     }
 
+    .kiosk-title {
+      font-size:17px; font-weight:800;
+      letter-spacing:-0.03em;
+      display:flex; align-items:center; gap:10px;
+    }
+    .kiosk-title-icon {
+      width:32px; height:32px;
+      border-radius:8px; overflow:hidden;
+      flex-shrink:0;
+      box-shadow:0 3px 10px rgba(240,81,56,0.35);
+    }
+    .kiosk-title-icon img { width:100%; height:100%; object-fit:cover; display:block; }
+
     .kiosk-clock {
-      font-family: var(--font-mono);
-      font-size: 22px;
-      color: var(--text);
-      letter-spacing: .05em;
+      font-size:20px; font-weight:700;
+      letter-spacing:-0.02em;
+      color:var(--text);
+      font-variant-numeric:tabular-nums;
     }
 
     .kiosk-admin-btn {
-      background: transparent;
-      border: 1px solid var(--border2);
-      color: var(--text2);
-      font-family: var(--font-mono);
-      font-size: 12px;
-      padding: 8px 18px;
-      border-radius: 6px;
-      cursor: pointer;
-      letter-spacing: .05em;
+      background:rgba(255,255,255,0.08);
+      border:1px solid var(--border2);
+      color:var(--text2);
+      font-family:var(--font);
+      font-size:13px; font-weight:600;
+      padding:8px 18px;
+      border-radius:var(--radius-pill);
+      cursor:pointer;
+      transition:all .2s;
     }
-
-    .kiosk-admin-btn:hover {
-      border-color: var(--accent);
-      color: var(--accent);
-    }
+    .kiosk-admin-btn:hover { background:rgba(255,255,255,0.13); color:var(--text); }
 
     .kiosk-body {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 32px;
-      padding-top: 80px;
+      display:flex; flex-direction:column; align-items:center;
+      gap:28px; padding-top:90px; padding-bottom:80px;
     }
 
-    /* Camera ring */
-    .camera-wrap {
-      position: relative;
-      width: 340px;
-      height: 340px;
+    .kiosk-prompt {
+      font-size:13px; font-weight:500;
+      color:var(--text2);
+      letter-spacing:0.01em;
+      text-align:center;
     }
 
-    .camera-ring {
-      position: absolute;
-      inset: -12px;
-      border-radius: 50%;
-      border: 2px solid var(--border2);
+    /* ─── CAMERA — Rounded Square iOS Style ─── */
+    .camera-wrap { position:relative; width:320px; height:320px; }
+
+    .corner {
+      position:absolute; width:36px; height:36px;
+      border-color: var(--accent); border-style:solid;
+      transition: all .3s;
+    }
+    .corner-tl { top:-4px; left:-4px; border-width:3px 0 0 3px; border-radius:6px 0 0 0; }
+    .corner-tr { top:-4px; right:-4px; border-width:3px 3px 0 0; border-radius:0 6px 0 0; }
+    .corner-bl { bottom:-4px; left:-4px; border-width:0 0 3px 3px; border-radius:0 0 0 6px; }
+    .corner-br { bottom:-4px; right:-4px; border-width:0 3px 3px 0; border-radius:0 0 6px 0; }
+    .corner-pulse { animation: cornerPulse 2s ease-in-out infinite; }
+
+    @keyframes cornerPulse {
+      0%,100% { opacity:1; border-color: var(--accent); }
+      50% { opacity:0.5; border-color: var(--accent2); }
     }
 
-    .camera-ring-scan {
-      position: absolute;
-      inset: -12px;
-      border-radius: 50%;
-      border: 2px solid transparent;
-      border-top-color: var(--accent);
-      border-right-color: var(--accent);
-      animation: spinRing 2.5s linear infinite;
+    .camera-glow {
+      position:absolute; inset:-16px; border-radius:30px;
+      background:transparent;
+      box-shadow:0 0 60px rgba(240,81,56,0.12), 0 0 120px rgba(240,81,56,0.06);
+      pointer-events:none;
     }
 
-    .camera-ring-pulse {
-      position: absolute;
-      inset: -24px;
-      border-radius: 50%;
-      border: 1px solid var(--accent);
-      opacity: 0;
-      animation: pulseRing 2.5s ease-out infinite;
-    }
-
-    .camera-ring-pulse2 {
-      animation-delay: 1.25s;
-    }
-
-    @keyframes spinRing {
-      to {
-        transform: rotate(360deg);
-      }
-    }
-
-    @keyframes pulseRing {
-      0% {
-        transform: scale(.85);
-        opacity: .5;
-      }
-
-      100% {
-        transform: scale(1.15);
-        opacity: 0;
-      }
-    }
-
-    .camera-circle {
-      width: 340px;
-      height: 340px;
-      border-radius: 50%;
-      overflow: hidden;
-      border: 2px solid var(--border2);
-      background: #000;
-      position: relative;
+    .camera-square {
+      width:320px; height:320px; border-radius:24px;
+      overflow:hidden; background:#000; position:relative;
+      border:1px solid var(--border2);
     }
 
     #kiosk-video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transform: scaleX(-1);
+      width:100%; height:100%;
+      object-fit:cover; transform:scaleX(-1);
     }
 
-    .scan-line {
-      position: absolute;
-      left: 0;
-      right: 0;
-      height: 2px;
-      background: linear-gradient(90deg, transparent, var(--accent), transparent);
-      animation: scanLine 2.5s ease-in-out infinite;
-      top: 0;
+    .scan-sweep {
+      position:absolute; left:0; right:0; height:80px;
+      background: linear-gradient(to bottom, transparent, rgba(240,81,56,0.06), rgba(240,81,56,0.12), rgba(240,81,56,0.06), transparent);
+      animation:scanSweep 2.8s ease-in-out infinite; top:0;
+    }
+    @keyframes scanSweep {
+      0% { top:-80px; opacity:0; } 10% { opacity:1; }
+      90% { opacity:1; } 100% { top:100%; opacity:0; }
     }
 
-    @keyframes scanLine {
-
-      0%,
-      100% {
-        top: 0;
-        opacity: 0;
-      }
-
-      10% {
-        opacity: .8;
-      }
-
-      90% {
-        opacity: .8;
-      }
-
-      100% {
-        top: 100%;
-        opacity: 0;
-      }
+    .camera-success-flash {
+      position:absolute; inset:0; background:rgba(50,215,75,0.15);
+      border-radius:24px; opacity:0; pointer-events:none; transition:opacity .15s;
     }
+    .camera-success-flash.active { opacity:1; }
 
     /* Kiosk status */
-    .kiosk-status {
-      text-align: center;
+    .kiosk-status { text-align:center; display:flex; flex-direction:column; gap:6px; align-items:center; }
+
+    .status-pill {
+      display:inline-flex; align-items:center; gap:8px;
+      font-size:13px; font-weight:600;
+      padding:8px 16px; border-radius:var(--radius-pill);
+      background:rgba(255,255,255,0.06); border:1px solid var(--border2);
+      letter-spacing:0.01em; transition:all .3s;
     }
+    .status-dot { width:6px; height:6px; border-radius:50%; background:var(--text2); }
 
-    .kiosk-status-text {
-      font-family: var(--font-mono);
-      font-size: 15px;
-      letter-spacing: .08em;
-      color: var(--text2);
-      margin-bottom: 8px;
-    }
+    .status-pill.scanning { background:rgba(240,81,56,0.1); border-color:rgba(240,81,56,0.3); color:var(--accent); }
+    .status-pill.scanning .status-dot { background:var(--accent); animation:dotBlink .8s infinite; }
+    .status-pill.success { background:rgba(50,215,75,0.1); border-color:rgba(50,215,75,0.3); color:var(--success); }
+    .status-pill.success .status-dot { background:var(--success); }
+    .status-pill.error { background:rgba(255,69,58,0.1); border-color:rgba(255,69,58,0.3); color:var(--error); }
+    .status-pill.error .status-dot { background:var(--error); }
+    .status-pill.warn { background:rgba(255,214,10,0.1); border-color:rgba(255,214,10,0.3); color:var(--warn); }
+    .status-pill.warn .status-dot { background:var(--warn); }
 
-    .kiosk-status-text.scanning {
-      color: var(--accent);
-      animation: blink 1s infinite;
-    }
-
-    .kiosk-status-text.success {
-      color: var(--success);
-      animation: none;
-    }
-
-    .kiosk-status-text.error {
-      color: var(--error);
-      animation: none;
-    }
-
-    .kiosk-status-text.warn {
-      color: var(--warn);
-      animation: none;
-    }
-
-    @keyframes blink {
-
-      0%,
-      100% {
-        opacity: 1
-      }
-
-      50% {
-        opacity: .4
-      }
-    }
+    @keyframes dotBlink { 0%,100%{opacity:1} 50%{opacity:.3} }
 
     .kiosk-result-card {
-      background: var(--surface);
-      border: 1px solid var(--success);
-      border-radius: 12px;
-      padding: 20px 32px;
-      text-align: center;
-      box-shadow: 0 0 30px rgba(0, 255, 163, .15);
-      min-width: 280px;
-      display: none;
+      background:rgba(28,28,30,0.9);
+      backdrop-filter:var(--blur); -webkit-backdrop-filter:var(--blur);
+      border:1px solid rgba(50,215,75,0.3);
+      border-radius:20px; padding:22px 36px;
+      text-align:center; box-shadow:0 8px 40px rgba(50,215,75,0.1);
+      min-width:300px; display:none;
+      animation:cardPop .35s cubic-bezier(.34,1.56,.64,1);
     }
-
-    .kiosk-result-card.show {
-      display: block;
+    @keyframes cardPop {
+      from { transform:scale(0.85) translateY(10px); opacity:0; }
+      to { transform:scale(1) translateY(0); opacity:1; }
     }
-
-    .kiosk-result-name {
-      font-family: var(--font-display);
-      font-size: 20px;
-      font-weight: 700;
-      color: var(--success);
-      letter-spacing: .05em;
-      margin-bottom: 6px;
-    }
-
-    .kiosk-result-detail {
-      font-size: 13px;
-      color: var(--text2);
-      font-family: var(--font-mono);
-    }
+    .kiosk-result-card.show { display:block; }
+    .kiosk-result-card.warn-state { border-color:rgba(255,214,10,0.3); box-shadow:0 8px 30px rgba(255,214,10,0.08); }
+    .kiosk-result-name { font-size:22px; font-weight:800; letter-spacing:-0.03em; color:var(--success); margin-bottom:6px; }
+    .kiosk-result-card.warn-state .kiosk-result-name { color:var(--warn); }
+    .kiosk-result-detail { font-size:13px; color:var(--text2); font-weight:500; }
 
     /* Loading overlay */
     .loading-overlay {
-      position: fixed;
-      inset: 0;
-      background: var(--bg);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 20px;
-      z-index: 100;
+      position: fixed; inset: 0; background: var(--bg);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 20px; z-index: 100;
     }
-
-    .loading-title {
-      font-family: var(--font-display);
-      font-size: 24px;
-      color: var(--accent);
-      letter-spacing: .1em;
-    }
-
-    .loading-sub {
-      font-family: var(--font-mono);
-      font-size: 13px;
-      color: var(--text2);
-    }
-
-    .loading-bar {
-      width: 240px;
-      height: 2px;
-      background: var(--border);
-      border-radius: 2px;
-      overflow: hidden;
-    }
-
+    .loading-title { font-size:24px; font-weight:800; color:var(--accent); letter-spacing:-0.03em; }
+    .loading-sub { font-size:13px; color:var(--text2); font-weight:500; }
+    .loading-bar { width:240px; height:3px; background:var(--border); border-radius:3px; overflow:hidden; }
     .loading-bar-fill {
-      height: 100%;
-      background: var(--accent);
-      width: 0%;
-      transition: width .5s;
-      box-shadow: 0 0 8px var(--accent-glow);
+      height:100%; background:linear-gradient(90deg,var(--accent),var(--accent2));
+      width:0%; transition:width .5s; box-shadow:0 0 12px var(--accent-glow);
     }
 
     /* ─── ADMIN LOGIN ─── */
     #page-admin-login {
-      display: none;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
+      display: none; align-items: center; justify-content: center; min-height: 100vh;
     }
 
     .admin-login-card {
-      background: var(--surface);
-      border: 1px solid var(--border2);
-      border-radius: 16px;
-      padding: 48px;
-      width: 100%;
-      max-width: 420px;
-      text-align: center;
+      border-radius:28px; padding:52px;
+      width:100%; max-width:440px; text-align:center;
     }
-
-    .admin-login-icon {
-      font-size: 40px;
-      margin-bottom: 16px;
-    }
-
+    .admin-login-icon { font-size:48px; margin-bottom:18px; }
     .admin-login-title {
-      font-family: var(--font-display);
-      font-size: 20px;
-      color: var(--accent);
-      margin-bottom: 8px;
-      letter-spacing: .08em;
+      font-size:22px; font-weight:800;
+      letter-spacing:-0.03em; margin-bottom:6px;
     }
 
     .admin-login-sub {
@@ -643,399 +503,204 @@
       justify-content: space-between;
       padding: 16px 32px;
       border-bottom: 1px solid var(--border);
-      background: rgba(7, 11, 18, .95);
-      backdrop-filter: blur(10px);
-      position: sticky;
-      top: 0;
-      z-index: 10;
+      background: rgba(0,0,0,0.8);
+      backdrop-filter: blur(20px) saturate(1.8);
+      -webkit-backdrop-filter: blur(20px) saturate(1.8);
+      position: sticky; top: 0; z-index: 10;
     }
-
-    .admin-header-left {
-      display: flex;
-      align-items: center;
-      gap: 24px;
-    }
-
-    .admin-logo {
-      font-family: var(--font-display);
-      font-size: 16px;
-      color: var(--accent);
-      letter-spacing: .1em;
-    }
-
-    .admin-tabs {
-      display: flex;
-      gap: 4px;
-    }
-
+    .admin-header-left { display:flex; align-items:center; gap:20px; }
+    .admin-logo { display:flex; align-items:center; gap:10px; font-size:16px; font-weight:800; letter-spacing:-0.03em; }
+    .admin-logo-icon { width:30px; height:30px; border-radius:8px; overflow:hidden; flex-shrink:0; box-shadow:0 2px 8px rgba(240,81,56,0.35); }
+    .admin-logo-icon img { width:100%; height:100%; object-fit:cover; display:block; }
+    .admin-tabs { display:flex; gap:4px; background:rgba(255,255,255,0.05); border-radius:12px; padding:4px; }
     .tab-btn {
-      font-family: var(--font-mono);
-      font-size: 12px;
-      letter-spacing: .06em;
-      padding: 8px 20px;
-      border-radius: 6px;
-      border: 1px solid transparent;
-      cursor: pointer;
-      background: transparent;
-      color: var(--text2);
-      transition: all .2s;
+      font-family:var(--font); font-size:13px; font-weight:600;
+      padding:8px 18px; border-radius:10px; border:none;
+      cursor:pointer; background:transparent; color:var(--text2); transition:all .2s;
+      display:flex; align-items:center; gap:6px;
+    }
+    .tab-btn:hover { color:var(--text); }
+    .tab-btn.active { background:rgba(255,255,255,0.1); color:var(--text); }
+
+    .admin-content { flex:1; padding:28px 32px; max-width:1200px; width:100%; margin:0 auto; }
+    .enroll-grid { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+    @media(max-width:768px) { .enroll-grid { grid-template-columns:1fr; } }
+    .panel { border-radius:20px; padding:24px; }
+    .panel-title {
+      font-size:12px; font-weight:700; color:var(--text2);
+      letter-spacing:0.05em; text-transform:uppercase;
+      margin-bottom:18px; display:flex; align-items:center; gap:8px;
+    }
+    .panel-title-bar { width:3px; height:14px; background:linear-gradient(to bottom,var(--accent),var(--accent2)); border-radius:2px; }
+
+    #enroll-video-wrap { position:relative; border-radius:14px; overflow:hidden; background:#000; aspect-ratio:4/3; margin-bottom:16px; }
+    #enroll-video { width:100%; height:100%; object-fit:cover; transform:scaleX(-1); display:block; }
+    .enroll-video-overlay { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,.6); font-size:14px; color:var(--text2); font-weight:500; pointer-events:none; }
+    .face-status-badge { display:inline-flex; align-items:center; gap:8px; font-size:13px; font-weight:600; padding:9px 15px; border-radius:12px; background:rgba(255,255,255,0.05); border:1px solid var(--border2); margin-bottom:16px; width:100%; }
+    .face-status-dot { width:8px; height:8px; border-radius:50%; background:var(--muted); }
+    .face-status-dot.ok { background:var(--success); box-shadow:0 0 6px var(--success); }
+    .face-status-dot.bad { background:var(--error); }
+    .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    .form-grid .full { grid-column:1/-1; }
+    #enroll-msg { font-size:13px; font-weight:600; text-align:center; display:none; padding:12px 16px; border-radius:12px; margin-top:12px; }
+    #enroll-msg.ok { background:rgba(50,215,75,.1); color:var(--success); border:1px solid rgba(50,215,75,.25); display:block; }
+    #enroll-msg.err { background:rgba(255,69,58,.1); color:var(--error); border:1px solid rgba(255,69,58,.25); display:block; }
+
+    .logs-toolbar { display:flex; align-items:center; gap:12px; margin-bottom:20px; flex-wrap:wrap; }
+    .toolbar-input { background:rgba(255,255,255,0.06); border:1px solid var(--border2); border-radius:10px; color:var(--text); font-family:var(--font); font-size:14px; font-weight:500; padding:9px 14px; }
+    .toolbar-input:focus { outline:none; border-color:var(--accent); }
+    .toolbar-input option { background:#1c1c1e; }
+    .data-table-wrap { overflow-x:auto; border-radius:16px; border:1px solid var(--border); }
+    table { width:100%; border-collapse:collapse; font-size:14px; }
+    thead tr { background:rgba(255,255,255,0.03); }
+    th { font-size:11px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:var(--text2); padding:14px 18px; text-align:left; border-bottom:1px solid var(--border); }
+    td { padding:13px 18px; border-bottom:1px solid var(--border); color:var(--text); }
+    tbody tr:last-child td { border-bottom:none; }
+    tbody tr:hover { background:rgba(240,81,56,0.03); }
+    .badge { font-size:11px; font-weight:700; padding:3px 10px; border-radius:var(--radius-pill); background:rgba(240,81,56,0.12); color:var(--accent); }
+    .empty-state { text-align:center; padding:60px; color:var(--text2); font-size:14px; font-weight:500; }
+    .students-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(280px,1fr)); gap:16px; }
+    .student-card { border-radius:16px; padding:22px; position:relative; transition:transform .2s, box-shadow .2s; }
+    .student-card:hover { transform:translateY(-2px); box-shadow:0 8px 30px rgba(0,0,0,.3); }
+    .student-card-avatar { width:44px; height:44px; border-radius:12px; background:linear-gradient(135deg,var(--accent),var(--accent2)); display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:800; color:#fff; margin-bottom:14px; }
+    .student-card-name { font-size:16px; font-weight:700; margin-bottom:4px; letter-spacing:-0.02em; }
+    .student-card-enrollment { font-size:12px; font-weight:700; color:var(--accent); margin-bottom:10px; letter-spacing:0.01em; }
+    .student-card-details { font-size:13px; color:var(--text2); line-height:1.8; font-weight:500; }
+    .student-card-delete { position:absolute; top:14px; right:14px; background:transparent; border:1px solid rgba(255,69,58,0.2); border-radius:8px; color:var(--error); font-size:12px; font-weight:600; padding:5px 12px; cursor:pointer; transition:all .2s; }
+    .student-card-delete:hover { background:rgba(255,69,58,.12); border-color:rgba(255,69,58,.4); }
+
+    .hidden { display:none !important; }
+    .spinner { display:inline-block; width:18px; height:18px; border:2px solid var(--border2); border-top-color:var(--accent); border-radius:50%; animation:spin .7s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .page { display:flex; }
+    .kiosk-recent { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); display:flex; gap:8px; flex-wrap:wrap; justify-content:center; max-width:600px; }
+    .recent-chip { font-size:12px; font-weight:600; padding:6px 14px; border-radius:var(--radius-pill); background:rgba(50,215,75,0.08); border:1px solid rgba(50,215,75,0.2); color:var(--success); }
+    .model-tag { font-size:12px; font-weight:600; padding:6px 14px; border-radius:var(--radius-pill); display:flex; align-items:center; gap:6px; }
+    .model-tag.loading { color:var(--warn); background:rgba(255,214,10,0.08); border:1px solid rgba(255,214,10,0.2); }
+    .model-tag.ready { color:var(--success); background:rgba(50,215,75,0.08); border:1px solid rgba(50,215,75,0.2); }
+    .dot-blink { width:6px; height:6px; border-radius:50%; background:currentColor; animation:dotBlink .8s infinite; }
+    .sound-flash { position:fixed; top:80px; left:50%; transform:translateX(-50%); background:rgba(50,215,75,0.15); border:1px solid rgba(50,215,75,0.3); border-radius:var(--radius-pill); padding:8px 20px; font-size:13px; font-weight:600; color:var(--success); opacity:0; transition:opacity .3s; pointer-events:none; z-index:50; }
+    .sound-flash.show { opacity:1; }
+    a { color:var(--accent); text-decoration:none; }
+    a:hover { text-decoration:underline; }
+
+    /* ════════════════════════════════════════
+       RESPONSIVE — Tablet & Mobile
+    ════════════════════════════════════════ */
+
+    /* ── Tablet  (≤ 900px) ── */
+    @media (max-width: 900px) {
+      .admin-content { padding: 20px 16px; }
+      .enroll-grid { grid-template-columns: 1fr; }
+      .students-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
     }
 
-    .tab-btn:hover {
-      color: var(--text);
-      border-color: var(--border2);
+    /* ── Phablet / large phone (≤ 768px) ── */
+    @media (max-width: 768px) {
+
+      /* Setup */
+      .setup-card { padding: 28px 20px; border-radius: 18px; }
+      .swift-logo-text { font-size: 20px; }
+      .sql-box { font-size: 10px; padding: 14px 12px; }
+
+      /* Kiosk header */
+      .kiosk-header { padding: 12px 16px; flex-wrap: wrap; gap: 8px; }
+      .kiosk-title { font-size: 14px; }
+      .kiosk-title-icon { width: 26px; height: 26px; }
+      .kiosk-clock { font-size: 15px; }
+      .kiosk-admin-btn { font-size: 12px; padding: 6px 13px; }
+      #model-status { font-size: 11px; padding: 5px 10px; }
+
+      /* Kiosk body — scale camera to viewport */
+      .kiosk-body { padding-top: 76px; padding-bottom: 60px; gap: 18px; }
+      .camera-wrap { width: min(80vw, 280px); height: min(80vw, 280px); }
+      .camera-square { width: min(80vw, 280px); height: min(80vw, 280px); }
+      .kiosk-result-card { min-width: unset; width: 90vw; padding: 18px 20px; }
+      .kiosk-result-name { font-size: 18px; }
+      .kiosk-recent { max-width: 92vw; bottom: 12px; }
+
+      /* Admin header — stack logo + tabs vertically */
+      .admin-header {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 12px 14px;
+        gap: 10px;
+      }
+      .admin-header-left { flex-direction: column; gap: 10px; }
+      .admin-logo { font-size: 14px; }
+      .admin-tabs { overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; }
+      .tab-btn { font-size: 12px; padding: 7px 13px; }
+      .admin-content { padding: 16px 12px; }
+      .panel { padding: 16px 14px; }
+
+      /* Admin login */
+      .admin-login-card { padding: 32px 22px; border-radius: 20px; }
+      .admin-login-title { font-size: 18px; }
+
+      /* Logs toolbar — wrap nicely */
+      .logs-toolbar { flex-direction: column; align-items: stretch; }
+      .logs-toolbar .btn { width: 100%; }
+      .toolbar-input { width: 100%; }
+
+      /* Table — horizontal scroll already on .data-table-wrap */
+      th, td { padding: 10px 12px; font-size: 12px; }
+
+      /* Enroll grid */
+      .enroll-grid { grid-template-columns: 1fr; }
+      .form-grid { grid-template-columns: 1fr; }
+      .form-grid .full { grid-column: auto; }
+
+      /* Students grid */
+      .students-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+      .student-card { padding: 16px; }
+
+      /* Buttons */
+      .btn { font-size: 14px; padding: 12px 22px; }
+      .btn-sm { padding: 9px 16px; font-size: 12px; }
     }
 
-    .tab-btn.active {
-      background: var(--accent-dim);
-      color: var(--accent);
-      border-color: rgba(0, 212, 255, .3);
-    }
+    /* ── Small phone (≤ 480px) ── */
+    @media (max-width: 480px) {
+      .setup-card { padding: 22px 14px; }
+      .step { gap: 10px; }
+      .step-title { font-size: 14px; }
+      .step-desc { font-size: 12px; }
 
-    .admin-content {
-      flex: 1;
-      padding: 32px;
-      max-width: 1200px;
-      width: 100%;
-      margin: 0 auto;
-    }
+      /* Kiosk camera fills most of screen */
+      .camera-wrap { width: 88vw; height: 88vw; }
+      .camera-square { width: 88vw; height: 88vw; }
 
-    /* ─── ENROLL TAB ─── */
-    .enroll-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 32px;
-    }
+      .kiosk-body { padding-top: 70px; gap: 14px; }
+      .kiosk-prompt { font-size: 12px; }
 
-    @media(max-width:768px) {
-      .enroll-grid {
-        grid-template-columns: 1fr;
+      .kiosk-header { padding: 10px 12px; }
+      .kiosk-clock { font-size: 13px; }
+
+      .admin-login-card { padding: 24px 14px; }
+      .students-grid { grid-template-columns: 1fr; }
+
+      /* Hide less-essential table columns on very small screens */
+      table th:nth-child(3), table td:nth-child(3),
+      table th:nth-child(4), table td:nth-child(4) {
+        display: none;
       }
     }
 
-    .panel {
-      background: var(--surface);
-      border: 1px solid var(--border2);
-      border-radius: 12px;
-      padding: 24px;
+    /* ── Touch-device enhancements ── */
+    @media (hover: none) and (pointer: coarse) {
+      .btn { min-height: 44px; }
+      .tab-btn { min-height: 40px; }
+      .kiosk-admin-btn { min-height: 40px; }
+      .field input, .field select { font-size: 16px; /* prevents iOS zoom */ }
     }
 
-    .panel-title {
-      font-family: var(--font-mono);
-      font-size: 12px;
-      letter-spacing: .1em;
-      color: var(--text2);
-      text-transform: uppercase;
-      margin-bottom: 20px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .panel-title::before {
-      content: '';
-      width: 3px;
-      height: 14px;
-      background: var(--accent);
-      border-radius: 2px;
-      display: block;
-    }
-
-    #enroll-video-wrap {
-      position: relative;
-      border-radius: 10px;
-      overflow: hidden;
-      background: #000;
-      aspect-ratio: 4/3;
-      margin-bottom: 16px;
-    }
-
-    #enroll-video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transform: scaleX(-1);
-      display: block;
-    }
-
-    .enroll-video-overlay {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: rgba(0, 0, 0, .5);
-      font-family: var(--font-mono);
-      font-size: 14px;
-      color: var(--text2);
-      pointer-events: none;
-    }
-
-    .face-status-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      font-family: var(--font-mono);
-      font-size: 12px;
-      padding: 8px 14px;
-      border-radius: 6px;
-      background: var(--surface2);
-      border: 1px solid var(--border2);
-      margin-bottom: 16px;
-    }
-
-    .face-status-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--muted);
-    }
-
-    .face-status-dot.ok {
-      background: var(--success);
-      box-shadow: 0 0 6px var(--success);
-    }
-
-    .face-status-dot.bad {
-      background: var(--error);
-    }
-
-    .form-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-    }
-
-    .form-grid .full {
-      grid-column: 1/-1;
-    }
-
-    #enroll-msg {
-      font-family: var(--font-mono);
-      font-size: 13px;
-      text-align: center;
-      display: none;
-      padding: 10px;
-      border-radius: 6px;
-      margin-top: 12px;
-    }
-
-    #enroll-msg.ok {
-      background: rgba(0, 255, 163, .1);
-      color: var(--success);
-      border: 1px solid rgba(0, 255, 163, .3);
-      display: block;
-    }
-
-    #enroll-msg.err {
-      background: rgba(255, 64, 102, .1);
-      color: var(--error);
-      border: 1px solid rgba(255, 64, 102, .3);
-      display: block;
-    }
-
-    /* ─── LOGS TAB ─── */
-    .logs-toolbar {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
-    }
-
-    .logs-toolbar .field {
-      flex-direction: row;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .logs-toolbar .field label {
-      white-space: nowrap;
-      margin-bottom: 0;
-    }
-
-    .logs-toolbar .field input,
-    .logs-toolbar .field select {
-      width: auto;
-    }
-
-    .data-table-wrap {
-      overflow-x: auto;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13.5px;
-    }
-
-    thead tr {
-      background: var(--surface);
-    }
-
-    th {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      color: var(--text2);
-      padding: 14px 16px;
-      text-align: left;
-      border-bottom: 1px solid var(--border);
-    }
-
-    td {
-      padding: 13px 16px;
-      border-bottom: 1px solid var(--border);
-      color: var(--text);
-    }
-
-    tbody tr:last-child td {
-      border-bottom: none;
-    }
-
-    tbody tr:hover {
-      background: rgba(0, 212, 255, .03);
-    }
-
-    .badge {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      padding: 3px 10px;
-      border-radius: 999px;
-      background: var(--accent-dim);
-      color: var(--accent);
-    }
-
-    .empty-state {
-      text-align: center;
-      padding: 60px;
-      font-family: var(--font-mono);
-      color: var(--muted);
-      font-size: 14px;
-    }
-
-    /* ─── STUDENTS TAB ─── */
-    .students-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 16px;
-    }
-
-    .student-card {
-      background: var(--surface);
-      border: 1px solid var(--border2);
-      border-radius: 10px;
-      padding: 20px;
-      position: relative;
-    }
-
-    .student-card-name {
-      font-size: 16px;
-      font-weight: 600;
-      margin-bottom: 6px;
-    }
-
-    .student-card-enrollment {
-      font-family: var(--font-mono);
-      font-size: 12px;
-      color: var(--accent);
-      margin-bottom: 12px;
-    }
-
-    .student-card-details {
-      font-size: 12.5px;
-      color: var(--text2);
-      line-height: 1.8;
-    }
-
-    .student-card-delete {
-      position: absolute;
-      top: 14px;
-      right: 14px;
-      background: transparent;
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      color: var(--error);
-      font-size: 12px;
-      padding: 4px 10px;
-      cursor: pointer;
-      font-family: var(--font-mono);
-    }
-
-    .student-card-delete:hover {
-      background: rgba(255, 64, 102, .1);
-      border-color: var(--error);
-    }
-
-    /* Misc */
-    .hidden {
-      display: none !important;
-    }
-
-    .spinner {
-      display: inline-block;
-      width: 16px;
-      height: 16px;
-      border: 2px solid var(--border2);
-      border-top-color: var(--accent);
-      border-radius: 50%;
-      animation: spinRing .7s linear infinite;
-    }
-
-    .page {
-      display: flex;
-    }
-
-    /* Kiosk recent list */
-    .kiosk-recent {
-      position: fixed;
-      bottom: 24px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      justify-content: center;
-      max-width: 600px;
-    }
-
-    .recent-chip {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      padding: 5px 12px;
-      border-radius: 999px;
-      background: var(--surface);
-      border: 1px solid var(--border2);
-      color: var(--text2);
-    }
-
-    .model-tag {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      padding: 5px 12px;
-      border-radius: 6px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .model-tag.loading {
-      color: var(--warn);
-    }
-
-    .model-tag.ready {
-      color: var(--success);
-    }
-
-    .dot-blink {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: currentColor;
-      animation: blink 1s infinite;
+    /* ── Landscape phone ── */
+    @media (max-height: 500px) and (orientation: landscape) {
+      .camera-wrap { width: 52vh; height: 52vh; }
+      .camera-square { width: 52vh; height: 52vh; }
+      .kiosk-body { padding-top: 58px; gap: 10px; flex-direction: row; flex-wrap: wrap; justify-content: center; align-items: flex-start; }
+      .kiosk-status, .kiosk-result-card { flex: 1 1 40%; }
+      .kiosk-recent { bottom: 6px; }
     }
   </style>
 </head>
@@ -1045,18 +710,22 @@
 
     <!-- ═══════════════════════════════════ LOADING OVERLAY ═══════════════════════════════════ -->
     <div id="loading-overlay" class="loading-overlay hidden">
-      <div class="loading-title">FACEATTEND</div>
-      <div class="loading-sub" id="loading-text">Loading AI models...</div>
-      <div class="loading-bar">
-        <div class="loading-bar-fill" id="loading-bar"></div>
-      </div>
+      <div class="loading-title">Swift Coding Club</div>
+      <div class="loading-sub" id="loading-text">Loading AI models…</div>
+      <div class="loading-bar"><div class="loading-bar-fill" id="loading-bar"></div></div>
     </div>
+
+    <!-- SOUND INDICATOR -->
+    <div class="sound-flash" id="sound-flash">🔔 Attendance marked</div>
 
     <!-- ═══════════════════════════════════ SETUP PAGE ═══════════════════════════════════ -->
     <div id="page-setup" style="display:none;">
-      <div class="setup-card">
-        <div class="setup-logo">⬡ FACEATTEND</div>
-        <div class="setup-sub">Facial Recognition Attendance System — First-time setup</div>
+      <div class="setup-card glass">
+        <div class="swift-logo">
+          <div class="swift-logo-icon"><img src="swift.jpg" alt="Swift Club" /></div>
+          <div class="swift-logo-text">Swift <span>Coding Club</span></div>
+        </div>
+        <div class="setup-sub">Attendance System — First-time setup</div>
         <div class="steps">
           <div class="step">
             <div class="step-num">1</div>
@@ -1131,36 +800,38 @@
     <div id="page-kiosk"
       style="display:none; flex-direction:column; align-items:center; justify-content:center; min-height:100vh;">
       <div class="kiosk-header">
-        <div class="kiosk-title">⬡ FACEATTEND</div>
+        <div class="kiosk-title">
+          <div class="kiosk-title-icon"><img src="swift.jpg" alt="Swift Coding Club" /></div>
+          Swift Coding Club
+        </div>
         <div id="kiosk-clock" class="kiosk-clock">00:00:00</div>
-        <div style="display:flex;align-items:center;gap:12px;">
-          <div id="model-status" class="model-tag loading">
-            <div class="dot-blink"></div> Loading AI…
-          </div>
-          <button class="kiosk-admin-btn" onclick="goAdminLogin()">[ ADMIN ]</button>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div id="model-status" class="model-tag loading"><div class="dot-blink"></div> Loading AI…</div>
+          <button class="kiosk-admin-btn" onclick="goAdminLogin()">⚙ Admin</button>
         </div>
       </div>
 
       <div class="kiosk-body">
-        <div style="text-align:center; margin-bottom:8px;">
-          <div
-            style="font-family:var(--font-mono);font-size:12px;color:var(--text2);letter-spacing:.1em;text-transform:uppercase;">
-            Look at the camera to mark attendance</div>
-        </div>
+        <div class="kiosk-prompt">Look at the camera to mark your attendance</div>
 
         <div class="camera-wrap">
-          <div class="camera-ring-pulse"></div>
-          <div class="camera-ring-pulse camera-ring-pulse2"></div>
-          <div class="camera-ring"></div>
-          <div class="camera-ring-scan"></div>
-          <div class="camera-circle">
+          <div class="camera-glow"></div>
+          <div class="corner corner-tl corner-pulse"></div>
+          <div class="corner corner-tr corner-pulse"></div>
+          <div class="corner corner-bl corner-pulse"></div>
+          <div class="corner corner-br corner-pulse"></div>
+          <div class="camera-square">
             <video id="kiosk-video" autoplay muted playsinline></video>
-            <div class="scan-line"></div>
+            <div class="scan-sweep"></div>
+            <div class="camera-success-flash" id="cam-flash"></div>
           </div>
         </div>
 
         <div class="kiosk-status">
-          <div id="kiosk-status-text" class="kiosk-status-text">[ INITIALIZING ]</div>
+          <div id="kiosk-status-pill" class="status-pill">
+            <div class="status-dot"></div>
+            <span id="kiosk-status-text">Initializing…</span>
+          </div>
         </div>
 
         <div id="kiosk-result-card" class="kiosk-result-card">
@@ -1174,17 +845,14 @@
 
     <!-- ═══════════════════════════════════ ADMIN LOGIN ═══════════════════════════════════ -->
     <div id="page-admin-login" style="display:none; align-items:center; justify-content:center; min-height:100vh;">
-      <div class="admin-login-card">
+      <div class="admin-login-card glass">
         <div class="admin-login-icon">🔐</div>
-        <div class="admin-login-title">ADMIN ACCESS</div>
-        <div class="admin-login-sub">Enter your admin password to continue</div>
+        <div class="admin-login-title">Admin Access</div>
+        <div class="admin-login-sub">Sign in to manage Swift Coding Club</div>
         <div class="admin-login-fields">
-          <div class="field"><label>Email</label><input type="email" id="admin-email-input"
-              placeholder="admin@yourdomain.com" onkeydown="if(event.key==='Enter')checkAdminPass()" /></div>
-          <div class="field"><label>Password</label><input type="password" id="admin-pass-input"
-              placeholder="Enter password" onkeydown="if(event.key==='Enter')checkAdminPass()" /></div>
-          <div id="admin-login-error"
-            style="color:var(--error);font-size:13px;font-family:var(--font-mono);display:none;margin-top:4px;"></div>
+          <div class="field"><label>Email</label><input type="email" id="admin-email-input" placeholder="admin@swiftclub.dev" onkeydown="if(event.key==='Enter')checkAdminPass()" /></div>
+          <div class="field"><label>Password</label><input type="password" id="admin-pass-input" placeholder="Enter password" onkeydown="if(event.key==='Enter')checkAdminPass()" /></div>
+          <div id="admin-login-error" style="color:var(--error);font-size:13px;display:none;margin-top:4px;"></div>
           <button class="btn btn-primary" onclick="checkAdminPass()">Unlock Panel →</button>
           <button class="btn btn-ghost" onclick="showPage('kiosk')">← Back to Kiosk</button>
         </div>
@@ -1195,17 +863,19 @@
     <div id="page-admin" style="display:none; flex-direction:column; min-height:100vh;">
       <div class="admin-header">
         <div class="admin-header-left">
-          <div class="admin-logo">⬡ FACEATTEND</div>
+          <div class="admin-logo">
+            <div class="admin-logo-icon"><img src="swift.jpg" alt="Swift Club" /></div>
+            Swift Coding Club
+          </div>
           <div class="admin-tabs">
-            <button class="tab-btn active" id="tab-enroll" onclick="switchTab('enroll')">Enroll Student</button>
-            <button class="tab-btn" id="tab-logs" onclick="switchTab('logs')">Attendance Logs</button>
-            <button class="tab-btn" id="tab-students" onclick="switchTab('students')">Students</button>
+            <button class="tab-btn active" id="tab-enroll" onclick="switchTab('enroll')">💻 Enroll</button>
+            <button class="tab-btn" id="tab-logs" onclick="switchTab('logs')">📋 Logs</button>
+            <button class="tab-btn" id="tab-students" onclick="switchTab('students')">👥 Members</button>
           </div>
         </div>
         <div style="display:flex;gap:8px;">
           <button class="btn btn-ghost btn-sm" onclick="showPage('kiosk')">← Kiosk</button>
-          <button class="btn btn-ghost btn-sm" onclick="adminSignOut()"
-            style="color:var(--error);border-color:var(--error);">Sign Out</button>
+          <button class="btn btn-sm" style="background:rgba(255,69,58,0.12);color:var(--error);border:1px solid rgba(255,69,58,0.25);border-radius:var(--radius-pill);" onclick="adminSignOut()">Sign Out</button>
         </div>
       </div>
       <div class="admin-content">
@@ -1214,8 +884,8 @@
         <div id="tab-content-enroll">
           <div class="enroll-grid">
             <!-- Camera panel -->
-            <div class="panel">
-              <div class="panel-title">Face Capture</div>
+            <div class="panel glass">
+              <div class="panel-title"><div class="panel-title-bar"></div>📸 Face Capture</div>
               <div id="enroll-video-wrap">
                 <video id="enroll-video" autoplay muted playsinline></video>
                 <div class="enroll-video-overlay" id="enroll-overlay">Camera will start here</div>
@@ -1230,8 +900,8 @@
               </div>
             </div>
             <!-- Form panel -->
-            <div class="panel">
-              <div class="panel-title">Student Details</div>
+            <div class="panel glass">
+              <div class="panel-title"><div class="panel-title-bar"></div>🚀 Member Details</div>
               <div class="form-grid">
                 <div class="field full"><label>Full Name *</label><input type="text" id="enroll-name"
                     placeholder="e.g. Arjun Patel" /></div>
@@ -1266,18 +936,12 @@
         <!-- LOGS TAB -->
         <div id="tab-content-logs" class="hidden">
           <div class="logs-toolbar">
-            <div class="field" style="flex-direction:row;align-items:center;gap:8px;margin-bottom:0;">
-              <label
-                style="white-space:nowrap;font-family:var(--font-mono);font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.08em;">Date</label>
-              <input type="date" id="log-date"
-                style="background:var(--surface2);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:var(--font-body);font-size:14px;padding:8px 12px;" />
-            </div>
-            <select id="log-dept"
-              style="background:var(--surface2);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:var(--font-body);font-size:14px;padding:8px 12px;">
+            <input type="date" id="log-date" class="toolbar-input" />
+            <select id="log-dept" class="toolbar-input">
               <option value="">All Departments</option>
               <option>Computer Engineering</option>
               <option>Information Technology</option>
-              <option>Electronics & Communication</option>
+              <option>Electronics &amp; Communication</option>
               <option>Mechanical Engineering</option>
               <option>Civil Engineering</option>
               <option>Electrical Engineering</option>
@@ -1307,16 +971,13 @@
               </tbody>
             </table>
           </div>
-          <div id="logs-count"
-            style="font-family:var(--font-mono);font-size:12px;color:var(--text2);margin-top:12px;text-align:right;">
-          </div>
+          <div id="logs-count" style="font-size:12px;color:var(--text2);font-weight:600;margin-top:12px;text-align:right;"></div>
         </div>
 
         <!-- STUDENTS TAB -->
         <div id="tab-content-students" class="hidden">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
-            <div style="font-family:var(--font-mono);font-size:12px;color:var(--text2);" id="student-count">Loading...
-            </div>
+          <div style="font-size:13px;color:var(--text2);font-weight:600;" id="student-count">Loading…</div>
             <button class="btn btn-ghost btn-sm" onclick="loadStudents()">⟳ Refresh</button>
           </div>
           <div class="students-grid" id="students-grid">
@@ -1443,8 +1104,8 @@
       // 3. Show good morning banner for 5s
       const dateStr = new Date().toLocaleDateString('en-IN',
         { weekday: 'long', day: 'numeric', month: 'short' }).toUpperCase();
-      setKioskStatus(`[ ✦ GOOD MORNING — ${dateStr} ]`, 'success');
-      setTimeout(() => setKioskStatus('[ READY — SHOW YOUR FACE ]', ''), 5000);
+      setKioskStatus(`✦ Good morning — ${dateStr}`, 'success');
+      setTimeout(() => setKioskStatus('Ready — show your face', ''), 5000);
 
       // 4. Reload fresh student list from DB
       loadStudents();
@@ -1621,7 +1282,7 @@
     function ensureModels() {
       if (modelsPromise) return modelsPromise;
       modelsPromise = (async () => {
-        setKioskStatus('[ LOADING AI MODELS ]', 'scanning');
+        setKioskStatus('Loading AI models…', 'scanning');
         setModelTag(false);
         try {
           await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
@@ -1631,7 +1292,7 @@
           setModelTag(true);
         } catch (e) {
           console.error('Model load error', e);
-          setKioskStatus('[ MODEL LOAD FAILED — reload page ]', 'error');
+          setKioskStatus('Model load failed — reload page', 'error');
         }
       })();
       return modelsPromise;
@@ -1664,15 +1325,15 @@
         vid.srcObject = stream;
         await vid.play();
       } catch (e) {
-        setKioskStatus('[ CAMERA ACCESS DENIED ]', 'error');
+        setKioskStatus('Camera access denied', 'error');
         return;
       }
 
-      setKioskStatus('[ INITIALIZING SCANNER ]', 'scanning');
+      setKioskStatus('Initialising scanner…', 'scanning');
       await ensureModels();
 
       if (!S.modelsLoaded) return;
-      setKioskStatus('[ READY — SHOW YOUR FACE ]', '');
+      setKioskStatus('Ready — show your face', '');
 
       // Scan loop replaced with recursive setTimeout for better flow control
       async function kioskLoop() {
@@ -1691,7 +1352,7 @@
 
     async function kioskTick() {
       if (!S.modelsLoaded || S.kioskCooldown) return;
-      if (S.students.length === 0) { setKioskStatus('[ NO STUDENTS ENROLLED ]', 'warn'); return; }
+      if (S.students.length === 0) { setKioskStatus('No members enrolled', 'warn'); return; }
       try {
         const vid = document.getElementById('kiosk-video');
         if (!vid || vid.readyState < 2) return;
@@ -1702,7 +1363,7 @@
         const det = await faceapi.detectSingleFace(vid, opts).withFaceLandmarks(true).withFaceDescriptor();
 
         if (!det) {
-          setKioskStatus('[ READY — SHOW YOUR FACE ]', '');
+          setKioskStatus('Ready — show your face', '');
           hideResultCard();
           return;
         }
@@ -1711,7 +1372,7 @@
         if (match) {
           await handleAttendance(match);
         } else {
-          setKioskStatus('[ FACE NOT RECOGNIZED ]', 'error');
+          setKioskStatus('Face not recognised', 'error');
           hideResultCard();
           setCooldown(2000);
         }
@@ -1728,7 +1389,7 @@
       const { data: existing } = await S.sb.from('attendance').select('id,time_in').eq('student_id', student.id).eq('date', today).single();
 
       if (existing) {
-        setKioskStatus(`[ ALREADY MARKED AT ${existing.time_in} ]`, 'warn');
+        setKioskStatus(`Already marked at ${existing.time_in}`, 'warn');
         showResultCard(student, `Already marked today at ${existing.time_in}`, false);
         setCooldown(3000);
         return;
@@ -1736,14 +1397,16 @@
 
       const { error } = await S.sb.from('attendance').insert({ student_id: student.id, date: today, time_in: timeNow });
       if (error) {
-        setKioskStatus('[ DB ERROR — Try Again ]', 'error');
+        setKioskStatus('DB Error — try again', 'error');
         return;
       }
 
-      setKioskStatus(`[ ✓ ATTENDANCE MARKED ]`, 'success');
-      showResultCard(student, `${student.department || 'Lab'} • ${timeNow}`, true);
+      setKioskStatus('✓ Attendance marked!', 'success');
+      showResultCard(student, `${student.department || 'Swift Club'} • ${timeNow}`, true);
+      flashCamera();
+      playPing();
       addRecentChip(student.name);
-      setCooldown(4000);
+      setCooldown(4500);
     }
 
     function findBestMatch(descriptor) {
@@ -1770,29 +1433,52 @@
       setTimeout(() => {
         S.kioskCooldown = false;
         hideResultCard();
-        setKioskStatus('[ READY — SHOW YOUR FACE ]', '');
+        setKioskStatus('Ready — show your face', '');
       }, ms);
     }
 
     function setKioskStatus(text, type) {
-      const el = document.getElementById('kiosk-status-text');
-      if (!el) return;
-      el.textContent = text;
-      el.className = 'kiosk-status-text' + (type ? ' ' + type : '');
+      const pill = document.getElementById('kiosk-status-pill');
+      const txt = document.getElementById('kiosk-status-text');
+      if (!pill || !txt) return;
+      txt.textContent = text;
+      pill.className = 'status-pill' + (type ? ' ' + type : '');
     }
 
     function showResultCard(student, detail, success) {
       const card = document.getElementById('kiosk-result-card');
       document.getElementById('kiosk-result-name').textContent = student.name;
       document.getElementById('kiosk-result-detail').textContent = `${student.enrollment_no} • ${detail}`;
-      card.style.borderColor = success ? 'var(--success)' : 'var(--warn)';
-      card.style.boxShadow = success ? '0 0 30px rgba(0,255,163,.15)' : '0 0 20px rgba(255,176,32,.1)';
-      document.getElementById('kiosk-result-name').style.color = success ? 'var(--success)' : 'var(--warn)';
-      card.classList.add('show');
+      card.className = 'kiosk-result-card show' + (!success ? ' warn-state' : '');
     }
 
     function hideResultCard() {
-      document.getElementById('kiosk-result-card').classList.remove('show');
+      document.getElementById('kiosk-result-card').classList.remove('show', 'warn-state');
+    }
+
+    function flashCamera() {
+      const flash = document.getElementById('cam-flash');
+      if (!flash) return;
+      flash.classList.add('active');
+      setTimeout(() => flash.classList.remove('active'), 400);
+    }
+
+    function playPing() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.frequency.setValueAtTime(880, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(660, ctx.currentTime + 0.12);
+        gain.gain.setValueAtTime(0.18, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+        osc.type = 'sine';
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.35);
+        const sf = document.getElementById('sound-flash');
+        if (sf) { sf.classList.add('show'); setTimeout(() => sf.classList.remove('show'), 1800); }
+      } catch (e) {}
     }
 
     const recentNames = [];
