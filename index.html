@@ -560,8 +560,18 @@
     .badge { font-size:11px; font-weight:700; padding:3px 10px; border-radius:var(--radius-pill); background:rgba(240,81,56,0.12); color:var(--accent); }
     .empty-state { text-align:center; padding:60px; color:var(--text2); font-size:14px; font-weight:500; }
     .students-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(280px,1fr)); gap:16px; }
-    .student-card { border-radius:16px; padding:22px; position:relative; transition:transform .2s, box-shadow .2s; }
-    .student-card:hover { transform:translateY(-2px); box-shadow:0 8px 30px rgba(0,0,0,.3); }
+    .student-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border2);
+      border-radius: 18px; padding: 24px; position: relative;
+      transition: all .2s;
+    }
+    .student-card:hover { 
+      transform: translateY(-4px); 
+      box-shadow: 0 12px 40px rgba(0,0,0,0.5); 
+      border-color: rgba(255,255,255,0.15);
+      background: rgba(255,255,255,0.06);
+    }
     .student-card-avatar { width:44px; height:44px; border-radius:12px; background:linear-gradient(135deg,var(--accent),var(--accent2)); display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:800; color:#fff; margin-bottom:14px; }
     .student-card-name { font-size:16px; font-weight:700; margin-bottom:4px; letter-spacing:-0.02em; }
     .student-card-enrollment { font-size:12px; font-weight:700; color:var(--accent); margin-bottom:10px; letter-spacing:0.01em; }
@@ -957,7 +967,13 @@
         <div class="admin-login-sub">Sign in to manage Swift Coding Club</div>
         <div class="admin-login-fields">
           <div class="field"><label>Email</label><input type="email" id="admin-email-input" placeholder="admin@swiftclub.dev" onkeydown="if(event.key==='Enter')checkAdminPass()" /></div>
-          <div class="field"><label>Password</label><input type="password" id="admin-pass-input" placeholder="Enter password" onkeydown="if(event.key==='Enter')checkAdminPass()" /></div>
+          <div class="field">
+            <label>Password</label>
+            <div style="position:relative;">
+              <input type="password" id="admin-pass-input" placeholder="Enter password" onkeydown="if(event.key==='Enter')checkAdminPass()" style="padding-right: 40px;" />
+              <button onclick="togglePass()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text2);font-size:16px;padding:4px;">👁</button>
+            </div>
+          </div>
           <div id="admin-login-error" style="color:var(--error);font-size:13px;display:none;margin-top:4px;"></div>
           <button class="btn btn-primary" onclick="checkAdminPass()">Unlock Panel →</button>
           <button class="btn btn-ghost" onclick="showPage('kiosk')">← Back to Kiosk</button>
@@ -1087,19 +1103,7 @@
         <!-- LOGS TAB -->
         <div id="tab-content-logs" class="hidden">
           <div class="logs-toolbar">
-            <input type="date" id="log-date" class="toolbar-input" />
-            <select id="log-dept" class="toolbar-input">
-              <option value="">All Departments</option>
-              <option>Computer Engineering</option>
-              <option>Information Technology</option>
-              <option>Electronics &amp; Communication</option>
-              <option>Mechanical Engineering</option>
-              <option>Civil Engineering</option>
-              <option>Electrical Engineering</option>
-              <option>Chemical Engineering</option>
-              <option>Other</option>
-            </select>
-            <button class="btn btn-ghost btn-sm" onclick="loadLogs()">🔍 Filter</button>
+            <input type="date" id="log-date" class="toolbar-input" onchange="loadLogs()" />
             <button class="btn btn-primary btn-sm" onclick="exportExcel()" style="margin-left:auto;">⬇ Export
               Excel</button>
           </div>
@@ -1224,7 +1228,9 @@
     const LAST_DATE_KEY = 'fa_last_date';
 
     function todayStr() {
-      return new Date().toISOString().split('T')[0]; // "2025-04-03"
+      const d = new Date();
+      d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+      return d.toISOString().split('T')[0];
     }
 
     function checkNewDay() {
@@ -1296,7 +1302,17 @@
       if (page !== 'admin' && S.enrollStream) stopEnrollCamera();
     }
 
-    function goAdminLogin() { showPage('admin-login'); }
+    async function goAdminLogin() {
+      // Check if session is still valid
+      if (S.adminSession) {
+        const { data: { session } } = await S.sb.auth.getSession();
+        if (session) {
+          showPage('admin');
+          return;
+        }
+      }
+      showPage('admin-login');
+    }
 
     async function checkAdminPass() {
       const now = Date.now();
@@ -1343,6 +1359,25 @@
       }
     }
 
+    function togglePass() {
+      const inp = document.getElementById('admin-pass-input');
+      const btn = inp.nextElementSibling;
+      if (inp.type === 'password') {
+        inp.type = 'text';
+        btn.style.opacity = '0.5'; // dimmed when showing text
+      } else {
+        inp.type = 'password';
+        btn.style.opacity = '1';
+      }
+    }
+
+    async function adminSignOut() {
+      if (!confirm('Are you sure you want to sign out?')) return;
+      await S.sb.auth.signOut();
+      S.adminSession = null;
+      showPage('kiosk');
+    }
+
     function showAdminError(msg) {
       const err = document.getElementById('admin-login-error');
       err.textContent = msg;
@@ -1358,7 +1393,7 @@
       localStorage.setItem(LAST_TAB_KEY, tab);
       if (tab === 'students') loadStudents();
       if (tab === 'logs') {
-        const today = new Date().toISOString().split('T')[0];
+        const today = todayStr();
         document.getElementById('log-date').value = today;
         loadLogs();
       }
@@ -1545,7 +1580,7 @@
     }
 
     async function handleAttendance(student) {
-      const today = new Date().toISOString().split('T')[0];
+      const today = todayStr();
       const timeNow = new Date().toTimeString().substring(0, 8);
 
       // ── Fast path: already marked in memory — no DB round-trip needed ──
@@ -1656,6 +1691,18 @@
     function addRecentChip(name) {
       recentNames.unshift(name);
       if (recentNames.length > 5) recentNames.pop();
+      renderRecentChips();
+    }
+
+    function removeRecentChip(name) {
+      const idx = recentNames.indexOf(name);
+      if (idx > -1) {
+        recentNames.splice(idx, 1);
+        renderRecentChips();
+      }
+    }
+
+    function renderRecentChips() {
       const el = document.getElementById('kiosk-recent');
       if (!el) return;
       el.innerHTML = recentNames.map(n => `<div class="recent-chip">✓ ${n}</div>`).join('');
@@ -1985,6 +2032,8 @@
     async function deleteStudent(id, name) {
       if (!confirm(`Delete ${name}? Their attendance records will also be removed.`)) return;
       await S.sb.from('students').delete().eq('id', id);
+      removeRecentChip(name);
+      S.markedToday.delete(id);
       loadStudents();
     }
 
@@ -1993,7 +2042,6 @@
     // ════════════════════════════════════════════════════════
     async function loadLogs() {
       const date = document.getElementById('log-date').value;
-      const dept = document.getElementById('log-dept').value;
       const tbody = document.getElementById('logs-tbody');
       tbody.innerHTML = '<tr><td colspan="6" class="empty-state"><div class="spinner"></div></td></tr>';
 
@@ -2010,8 +2058,7 @@
         return;
       }
 
-      let rows = data || [];
-      if (dept) rows = rows.filter(r => r.students?.department === dept);
+      const rows = data || [];
       S.logsData = rows;
 
       if (!rows.length) {
@@ -2073,7 +2120,7 @@
       wsAll['!cols'] = [{ wch: 24 }, { wch: 16 }, { wch: 30 }, { wch: 12 }, { wch: 10 }];
       XLSX.utils.book_append_sheet(wb, wsAll, 'All Records');
 
-      const fname = `attendance_${new Date().toISOString().split('T')[0]}.xlsx`;
+      const fname = `attendance_${todayStr()}.xlsx`;
       XLSX.writeFile(wb, fname);
     }
 
