@@ -1005,6 +1005,8 @@
       sb: null,
       config: null,
       students: [],
+      descriptorCache: [],      // pre-converted Float32Arrays — rebuilt on loadStudents
+      markedToday: new Set(),   // student IDs already marked today — skip DB duplicate check
       modelsLoaded: false,
       kioskStream: null,
       kioskScanTimer: null,
@@ -1097,20 +1099,23 @@
       const recentEl = document.getElementById('kiosk-recent');
       if (recentEl) recentEl.innerHTML = '';
 
-      // 2. Hide result card & clear any stuck state
+      // 2. Hide result card & clear stuck state
       hideResultCard();
       S.kioskCooldown = false;
 
-      // 3. Show good morning banner for 5s
+      // 3. Clear in-memory duplicate cache for new day
+      S.markedToday.clear();
+
+      // 4. Show good morning banner for 5s
       const dateStr = new Date().toLocaleDateString('en-IN',
         { weekday: 'long', day: 'numeric', month: 'short' }).toUpperCase();
       setKioskStatus(`✦ Good morning — ${dateStr}`, 'success');
       setTimeout(() => setKioskStatus('Ready — show your face', ''), 5000);
 
-      // 4. Reload fresh student list from DB
+      // 5. Reload fresh student list from DB
       loadStudents();
 
-      // 5. Brief screen flash to signal new day
+      // 6. Brief screen flash to signal new day
       document.body.style.transition = 'opacity .5s';
       document.body.style.opacity = '0.15';
       setTimeout(() => { document.body.style.opacity = '1'; }, 500);
@@ -1335,11 +1340,16 @@
       if (!S.modelsLoaded) return;
       setKioskStatus('Ready — show your face', '');
 
-      // Scan loop replaced with recursive setTimeout for better flow control
+      // Scan loop: rAF keeps the next tick synced to the GPU render cycle;
+      // 150ms gap prevents CPU thrashing on weak/mobile devices while still
+      // feeling instant to the user (face is confirmed within one blink).
       async function kioskLoop() {
         if (!S.kioskStream) return;
         await kioskTick();
-        S.kioskScanTimer = setTimeout(kioskLoop, 80);
+        S.kioskScanTimer = setTimeout(
+          () => requestAnimationFrame(kioskLoop),
+          150
+        );
       }
       kioskLoop();
     }
@@ -1385,22 +1395,34 @@
       const today = new Date().toISOString().split('T')[0];
       const timeNow = new Date().toTimeString().substring(0, 8);
 
-      // Check duplicate
-      const { data: existing } = await S.sb.from('attendance').select('id,time_in').eq('student_id', student.id).eq('date', today).single();
-
-      if (existing) {
-        setKioskStatus(`Already marked at ${existing.time_in}`, 'warn');
-        showResultCard(student, `Already marked today at ${existing.time_in}`, false);
+      // ── Fast path: already marked in memory — no DB round-trip needed ──
+      if (S.markedToday.has(student.id)) {
+        setKioskStatus(`Already marked today`, 'warn');
+        showResultCard(student, `Already marked today`, false);
         setCooldown(3000);
         return;
       }
 
-      const { error } = await S.sb.from('attendance').insert({ student_id: student.id, date: today, time_in: timeNow });
+      // ── Insert attendance record ──
+      const { error } = await S.sb.from('attendance').insert({
+        student_id: student.id, date: today, time_in: timeNow
+      });
+
       if (error) {
-        setKioskStatus('DB Error — try again', 'error');
+        // Unique constraint violation → already in DB (e.g. marked on another device)
+        if (error.code === '23505') {
+          S.markedToday.add(student.id); // sync cache
+          setKioskStatus(`Already marked today`, 'warn');
+          showResultCard(student, `Already marked today`, false);
+          setCooldown(3000);
+        } else {
+          setKioskStatus('DB Error — try again', 'error');
+        }
         return;
       }
 
+      // ── Success ──
+      S.markedToday.add(student.id); // cache so next scan is instant
       setKioskStatus('✓ Attendance marked!', 'success');
       showResultCard(student, `${student.department || 'Swift Club'} • ${timeNow}`, true);
       flashCamera();
@@ -1413,19 +1435,15 @@
       // Validate incoming descriptor
       if (!descriptor || descriptor.length !== 128) return null;
 
-      let best = null, bestDist = Infinity;
-      for (const st of S.students) {
-        try {
-          const raw = st.face_descriptor;
-          // Handle both array and object formats from Supabase JSONB
-          const vals = Array.isArray(raw) ? raw : Object.values(raw);
-          if (vals.length !== 128) continue;
-          const stored = new Float32Array(vals);
-          const dist = faceapi.euclideanDistance(descriptor, stored);
-          if (dist < bestDist) { bestDist = dist; best = st; }
-        } catch (e) { }
+      let bestId = null, bestDist = Infinity;
+      // Use pre-converted Float32Array cache — no per-frame allocation
+      for (const { id, vec } of S.descriptorCache) {
+        if (vec.length !== 128) continue;
+        const dist = faceapi.euclideanDistance(descriptor, vec);
+        if (dist < bestDist) { bestDist = dist; bestId = id; }
       }
-      return bestDist < MATCH_THRESHOLD ? best : null;
+      if (bestDist >= MATCH_THRESHOLD) return null;
+      return S.students.find(st => st.id === bestId) || null;
     }
 
     function setCooldown(ms) {
@@ -1594,7 +1612,16 @@
     async function loadStudents() {
       if (!S.sb) return;
       const { data, error } = await S.sb.from('students').select('*').order('created_at');
-      if (!error) S.students = data || [];
+      if (!error) {
+        S.students = data || [];
+        // Pre-convert face descriptors to Float32Array once here so
+        // findBestMatch() never pays the conversion cost on every frame.
+        S.descriptorCache = S.students.map(st => {
+          const raw = st.face_descriptor;
+          const vals = Array.isArray(raw) ? raw : Object.values(raw);
+          return { id: st.id, vec: new Float32Array(vals) };
+        });
+      }
 
       const grid = document.getElementById('students-grid');
       const cnt = document.getElementById('student-count');
