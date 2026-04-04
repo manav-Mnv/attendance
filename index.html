@@ -739,6 +739,75 @@
       .kiosk-status, .kiosk-result-card { flex: 1 1 40%; }
       .kiosk-recent { bottom: 6px; }
     }
+
+    /* ── Enroll Wizard ── */
+    .wizard-step { display: none; }
+    .wizard-step.active { display: block; animation: fade-in .3s ease-out forwards; }
+
+    .step-indicator {
+      display: flex; align-items: center; gap: 0;
+      margin-bottom: 28px;
+    }
+    .step-dot {
+      width: 28px; height: 28px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 800;
+      background: var(--surface2); border: 1px solid var(--border2);
+      color: var(--text3); flex-shrink: 0; transition: all .3s;
+    }
+    .step-dot.done   { background: var(--success); border-color: var(--success); color: #000; }
+    .step-dot.active { background: var(--accent);  border-color: var(--accent);  color: #fff;
+      box-shadow: 0 0 0 4px rgba(240,81,56,0.2); }
+    .step-line {
+      flex: 1; height: 2px;
+      background: var(--border2); transition: background .3s;
+    }
+    .step-line.done { background: var(--success); }
+    .step-label {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
+      text-transform: uppercase; color: var(--text3); margin-top: 4px;
+      text-align: center; width: 60px;
+    }
+    .step-label.active { color: var(--accent); }
+    .step-label.done   { color: var(--success); }
+
+    .step-header {
+      display: flex; flex-direction: column; gap: 2px;
+      margin-bottom: 20px;
+    }
+    .step-header-title { font-size: 17px; font-weight: 800; letter-spacing: -0.02em; }
+    .step-header-sub   { font-size: 13px; color: var(--text2); font-weight: 500; }
+
+    /* Student preview card */
+    .student-preview {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border2);
+      border-radius: 16px; padding: 20px 22px;
+      display: flex; flex-direction: column; gap: 14px;
+      margin-bottom: 20px;
+    }
+    .preview-row {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      gap: 10px; border-bottom: 1px solid var(--border); padding-bottom: 12px;
+    }
+    .preview-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .preview-key {
+      font-size: 10px; font-weight: 700; color: var(--text3);
+      letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap;
+    }
+    .preview-val { font-size: 14px; font-weight: 600; color: var(--text); text-align: right; }
+    .preview-enr {
+      font-size: 22px; font-weight: 900; letter-spacing: -0.03em;
+      color: var(--accent); font-family: var(--font-mono);
+    }
+    .preview-name { font-size: 18px; font-weight: 800; letter-spacing: -0.02em; }
+
+    .enroll-step-search {
+      max-width: 540px; margin: 0 auto;
+    }
+    .search-box {
+      display: flex; gap: 10px; align-items: flex-start;
+    }
   </style>
 </head>
 
@@ -949,7 +1018,7 @@
                 <div class="search-box">
                   <div class="field ac-wrap" style="flex:1">
                     <input type="text" id="enroll-enrollment"
-                      placeholder="e.g. 22BCS001"
+                      placeholder="e.g. 2503031461401"
                       autocomplete="off"
                       oninput="filterEnrollment(this.value)"
                       onkeydown="acKeyNav(event)"
@@ -1483,7 +1552,7 @@
       if (S.markedToday.has(student.id)) {
         setKioskStatus(`Already marked today`, 'warn');
         showResultCard(student, `Already marked today`, false);
-        setCooldown(3000);
+        setCooldown(1500);
         return;
       }
 
@@ -1498,7 +1567,7 @@
           S.markedToday.add(student.id); // sync cache
           setKioskStatus(`Already marked today`, 'warn');
           showResultCard(student, `Already marked today`, false);
-          setCooldown(3000);
+          setCooldown(1500);
         } else {
           setKioskStatus('DB Error — try again', 'error');
         }
@@ -1512,7 +1581,7 @@
       flashCamera();
       playPing();
       addRecentChip(student.name);
-      setCooldown(4500);
+      setCooldown(2000);
     }
 
     function findBestMatch(descriptor) {
@@ -1655,6 +1724,15 @@
       if (!m) return;
       document.getElementById('enroll-enrollment').value = m.enrollment_no;
       dropdown.classList.remove('open');
+      
+      // Check if already enrolled
+      if (S.students.some(s => s.enrollment_no.toLowerCase() === m.enrollment_no.toLowerCase())) {
+        const errEl = document.getElementById('wstep-1-err');
+        errEl.textContent = `❌ ${m.name || m.enrollment_no} is already enrolled in the system.`;
+        errEl.style.display = 'block';
+        return;
+      }
+      
       // Advance to step 2 with this student
       goWizardStep2(m);
     }
@@ -1699,6 +1777,13 @@
       const errEl = document.getElementById('wstep-1-err');
       errEl.style.display = 'none';
       if (!enr) { errEl.textContent = 'Please enter an enrollment number.'; errEl.style.display = 'block'; return; }
+
+      // Check if already enrolled in the app first
+      if (S.students.some(s => s.enrollment_no.toLowerCase() === enr.toLowerCase())) {
+        errEl.textContent = `❌ ${enr} is already enrolled in the system.`;
+        errEl.style.display = 'block';
+        return;
+      }
 
       // Try from cached masterData first
       const local = S.masterData.find(m => m.enrollment_no.toLowerCase() === enr.toLowerCase());
@@ -1792,6 +1877,15 @@
         if (!det) {
           dot.className = 'face-status-dot bad';
           txt.textContent = 'No face detected. Try again.';
+          S.capturedDescriptor = null;
+          return;
+        }
+
+        // Check if face is already registered
+        const match = findBestMatch(det.descriptor);
+        if (match) {
+          dot.className = 'face-status-dot bad';
+          txt.textContent = `❌ Face already registered to ${match.name}`;
           S.capturedDescriptor = null;
           return;
         }
