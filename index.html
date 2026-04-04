@@ -1153,6 +1153,30 @@
   <script>
     'use strict';
 
+    /**
+     * ============================================================================
+     * SWIFT ATTENDANCE SYSTEM — CORE LOGIC
+     * ============================================================================
+     * Architecture Overview:
+     * 1. State Management (S object): Holds global UI state, active camera streams,
+     *    and the active student working caches (to prevent excessive DB polling).
+     * 2. Face API Integration: Uses `face-api.js` for completely local, edge-based 
+     *    facial recognition. We use the TinyFaceDetector for maximum speed.
+     * 3. Supabase Integration: Acts as the real-time backend. Handles student
+     *    enrollments, attendance logging, and secure administrative sessions.
+     * 
+     * Core Flows:
+     * - KIOSK LOOP: Continuously captures frames from `kiosk-video`, extracts a 
+     *   128-d float array (descriptor), and calculates the Euclidean distance 
+     *   against the `S.descriptorCache` to find the closest enrolled student.
+     * - ENROLL WIZARD: A 3-step wizard that hooks into `students_master`. 
+     *   It checks against the `students` array to explicitly prevent duplicate ID 
+     *   and duplicate Face descriptor registrations.
+     * - MIDNIGHT RESET: Timezone-aware date tracking (using local system offsets) 
+     *   automatically clears the `.markedToday` cache when the calendar day rolls over.
+     * ============================================================================
+     */
+
     // ════════════════════════════════════════════════════════
     //  STATE
     // ════════════════════════════════════════════════════════
