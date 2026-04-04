@@ -686,7 +686,44 @@
       }
     }
 
-    /* ── Touch-device enhancements ── */
+    /* ── Autocomplete dropdown ── */
+    .ac-wrap { position: relative; }
+    .ac-dropdown {
+      position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 200;
+      background: rgba(28,28,30,0.98);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border2);
+      border-radius: var(--radius-sm);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+      max-height: 220px; overflow-y: auto;
+      display: none;
+    }
+    .ac-dropdown.open { display: block; }
+    .ac-item {
+      padding: 11px 14px; cursor: pointer;
+      display: flex; flex-direction: column; gap: 2px;
+      border-bottom: 1px solid var(--border);
+      transition: background .15s;
+    }
+    .ac-item:last-child { border-bottom: none; }
+    .ac-item:hover, .ac-item.highlighted { background: rgba(240,81,56,0.1); }
+    .ac-item-enr { font-size: 13px; font-weight: 700; color: var(--accent); font-family: var(--font-mono); }
+    .ac-item-name { font-size: 12px; color: var(--text2); font-weight: 500; }
+    .ac-item-meta { font-size: 11px; color: var(--text3); }
+    .autofill-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.04em;
+      color: var(--success); background: rgba(50,215,75,0.08);
+      border: 1px solid rgba(50,215,75,0.2);
+      border-radius: var(--radius-pill); padding: 3px 10px;
+      margin-bottom: 10px; display: none;
+    }
+    .autofill-badge.show { display: inline-flex; }
+    .field input.autofilled {
+      border-color: rgba(50,215,75,0.35);
+      background: rgba(50,215,75,0.04);
+      color: var(--text2);
+    }
     @media (hover: none) and (pointer: coarse) {
       .btn { min-height: 44px; }
       .tab-btn { min-height: 40px; }
@@ -880,56 +917,101 @@
       </div>
       <div class="admin-content">
 
-        <!-- ENROLL TAB -->
+        <!-- ENROLL TAB — Step Wizard -->
         <div id="tab-content-enroll">
-          <div class="enroll-grid">
-            <!-- Camera panel -->
-            <div class="panel glass">
-              <div class="panel-title"><div class="panel-title-bar"></div>📸 Face Capture</div>
-              <div id="enroll-video-wrap">
-                <video id="enroll-video" autoplay muted playsinline></video>
-                <div class="enroll-video-overlay" id="enroll-overlay">Camera will start here</div>
+          <div id="enroll-wizard">
+
+            <!-- Step indicator -->
+            <div class="step-indicator">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+                <div class="step-dot active" id="sdot-1">1</div>
+                <div class="step-label active" id="slbl-1">Lookup</div>
               </div>
-              <div class="face-status-badge">
-                <div class="face-status-dot" id="face-dot"></div>
-                <span id="face-status-text">No face captured</span>
+              <div class="step-line" id="sline-1"></div>
+              <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+                <div class="step-dot" id="sdot-2">2</div>
+                <div class="step-label" id="slbl-2">Confirm</div>
               </div>
-              <div style="display:flex;gap:10px;">
-                <button class="btn btn-primary" style="flex:1" onclick="captureEnrollFace()">📸 Capture Face</button>
-                <button class="btn btn-ghost btn-sm" onclick="startEnrollCamera()">⟳ Camera</button>
+              <div class="step-line" id="sline-2"></div>
+              <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+                <div class="step-dot" id="sdot-3">3</div>
+                <div class="step-label" id="slbl-3">Face</div>
               </div>
             </div>
-            <!-- Form panel -->
-            <div class="panel glass">
-              <div class="panel-title"><div class="panel-title-bar"></div>🚀 Member Details</div>
-              <div class="form-grid">
-                <div class="field full"><label>Full Name *</label><input type="text" id="enroll-name"
-                    placeholder="e.g. Arjun Patel" /></div>
-                <div class="field full"><label>Enrollment Number *</label><input type="text" id="enroll-enrollment"
-                    placeholder="e.g. 22IT001" /></div>
-                <div class="field"><label>Email</label><input type="email" id="enroll-email"
-                    placeholder="student@university.ac.in" /></div>
-                <div class="field"><label>Phone</label><input type="text" id="enroll-phone"
-                    placeholder="+91 9876543210" /></div>
-                <div class="field full">
-                  <label>Department</label>
-                  <select id="enroll-dept">
-                    <option value="">Select Department</option>
-                    <option>Computer Engineering</option>
-                    <option>Information Technology</option>
-                    <option>Electronics & Communication</option>
-                    <option>Mechanical Engineering</option>
-                    <option>Civil Engineering</option>
-                    <option>Electrical Engineering</option>
-                    <option>Chemical Engineering</option>
-                    <option>Other</option>
-                  </select>
+
+            <!-- ── STEP 1: Enrollment Lookup ── -->
+            <div class="wizard-step active" id="wstep-1">
+              <div class="enroll-step-search panel glass">
+                <div class="step-header">
+                  <div class="step-header-title">Enter Enrollment Number</div>
+                  <div class="step-header-sub">Type to search from student master database</div>
+                </div>
+                <div class="search-box">
+                  <div class="field ac-wrap" style="flex:1">
+                    <input type="text" id="enroll-enrollment"
+                      placeholder="e.g. 22BCS001"
+                      autocomplete="off"
+                      oninput="filterEnrollment(this.value)"
+                      onkeydown="acKeyNav(event)"
+                      onfocus="filterEnrollment(this.value)"
+                      style="font-size:18px;font-weight:700;letter-spacing:-0.01em;padding:14px 18px;" />
+                    <div class="ac-dropdown" id="enroll-ac"></div>
+                  </div>
+                  <button class="btn btn-primary" onclick="wizardLookup()" style="padding:14px 22px;flex-shrink:0">Search →</button>
+                </div>
+                <div id="wstep-1-err" style="color:var(--error);font-size:13px;font-weight:600;margin-top:12px;display:none;"></div>
+              </div>
+            </div>
+
+            <!-- ── STEP 2: Confirm Details ── -->
+            <div class="wizard-step" id="wstep-2">
+              <div class="panel glass">
+                <div class="step-header">
+                  <div class="step-header-title">Confirm Student Details</div>
+                  <div class="step-header-sub">Verify the information below before proceeding to face capture</div>
+                </div>
+                <div class="student-preview" id="student-preview">
+                  <!-- filled by JS -->
+                </div>
+                <div style="display:flex;gap:10px;">
+                  <button class="btn btn-ghost" onclick="wizardReset()" style="flex:0 0 auto">← Back</button>
+                  <button class="btn btn-primary" onclick="wizardConfirm()" style="flex:1">✓ Confirm &amp; Capture Face →</button>
                 </div>
               </div>
-              <div id="enroll-msg"></div>
-              <button class="btn btn-primary" style="width:100%;margin-top:20px;" onclick="saveStudent()">✓ Enroll
-                Student</button>
             </div>
+
+            <!-- ── STEP 3: Face Capture + Enroll ── -->
+            <div class="wizard-step" id="wstep-3">
+              <div class="enroll-grid">
+                <!-- Camera -->
+                <div class="panel glass">
+                  <div class="panel-title"><div class="panel-title-bar"></div>📸 Face Capture</div>
+                  <div id="enroll-video-wrap">
+                    <video id="enroll-video" autoplay muted playsinline></video>
+                    <div class="enroll-video-overlay" id="enroll-overlay">Camera will start here</div>
+                  </div>
+                  <div class="face-status-badge">
+                    <div class="face-status-dot" id="face-dot"></div>
+                    <span id="face-status-text">No face captured</span>
+                  </div>
+                  <div style="display:flex;gap:10px;">
+                    <button class="btn btn-primary" style="flex:1" onclick="captureEnrollFace()">📸 Capture Face</button>
+                    <button class="btn btn-ghost btn-sm" onclick="startEnrollCamera()">⟳ Camera</button>
+                  </div>
+                </div>
+                <!-- Summary -->
+                <div class="panel glass">
+                  <div class="panel-title"><div class="panel-title-bar"></div>🚀 Enrolling</div>
+                  <div class="student-preview" id="student-preview-2" style="margin-bottom:16px"></div>
+                  <div id="enroll-msg"></div>
+                  <div style="display:flex;gap:10px;margin-top:16px">
+                    <button class="btn btn-ghost btn-sm" onclick="wizardBack()" style="flex:0 0 auto">← Back</button>
+                    <button class="btn btn-primary" style="flex:1" onclick="saveStudent()">✓ Enroll Student</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
 
@@ -1005,6 +1087,8 @@
       sb: null,
       config: null,
       students: [],
+      masterData: [],           // students_master rows for autocomplete
+      wizardStudent: null,      // student selected in wizard step 1
       descriptorCache: [],      // pre-converted Float32Arrays — rebuilt on loadStudents
       markedToday: new Set(),   // student IDs already marked today — skip DB duplicate check
       modelsLoaded: false,
@@ -1139,7 +1223,7 @@
 
       if (page !== 'kiosk' && S.kioskStream) stopKiosk();
       if (page === 'kiosk') startKiosk();
-      if (page === 'admin') { startEnrollCamera(); loadStudents(); }
+      if (page === 'admin') { startEnrollCamera(); loadStudents(); loadMasterData(); }
       if (page !== 'admin' && S.enrollStream) stopEnrollCamera();
     }
 
@@ -1509,7 +1593,167 @@
     }
 
     // ════════════════════════════════════════════════════════
-    //  ENROLLMENT — Camera
+    //  MASTER DATA — Autocomplete
+    // ════════════════════════════════════════════════════════
+    async function loadMasterData() {
+      if (!S.sb) return;
+      const { data, error } = await S.sb.from('students_master').select('*').order('enrollment_no');
+      if (!error && data) S.masterData = data;
+    }
+
+    let acHighlight = -1;
+
+    function filterEnrollment(query) {
+      const dropdown = document.getElementById('enroll-ac');
+      acHighlight = -1;
+      if (!query || query.length < 1) { dropdown.classList.remove('open'); return; }
+
+      const q = query.toLowerCase();
+      const matches = S.masterData.filter(m =>
+        m.enrollment_no.toLowerCase().includes(q) ||
+        (m.name && m.name.toLowerCase().includes(q))
+      ).slice(0, 8);
+
+      if (!matches.length) { dropdown.classList.remove('open'); return; }
+
+      dropdown.innerHTML = matches.map((m, i) => `
+        <div class="ac-item" data-idx="${i}" onmousedown="pickMaster(${i})">
+          <span class="ac-item-enr">${esc(m.enrollment_no)}</span>
+          <span class="ac-item-name">${esc(m.name || '')}</span>
+          <span class="ac-item-meta">${[m.collage, m.department, m.branch].filter(Boolean).map(esc).join(' · ')}</span>
+        </div>
+      `).join('');
+      dropdown._matches = matches;
+      dropdown.classList.add('open');
+    }
+
+    function acKeyNav(e) {
+      const dropdown = document.getElementById('enroll-ac');
+      const items = dropdown.querySelectorAll('.ac-item');
+      if (!dropdown.classList.contains('open') || !items.length) return;
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        acHighlight = Math.min(acHighlight + 1, items.length - 1);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        acHighlight = Math.max(acHighlight - 1, 0);
+      } else if (e.key === 'Enter' && acHighlight >= 0) {
+        e.preventDefault();
+        pickMaster(acHighlight);
+        return;
+      } else if (e.key === 'Escape') {
+        dropdown.classList.remove('open');
+        return;
+      }
+      items.forEach((el, i) => el.classList.toggle('highlighted', i === acHighlight));
+      if (acHighlight >= 0) items[acHighlight].scrollIntoView({ block: 'nearest' });
+    }
+
+    function pickMaster(idx) {
+      const dropdown = document.getElementById('enroll-ac');
+      const m = dropdown._matches?.[idx];
+      if (!m) return;
+      document.getElementById('enroll-enrollment').value = m.enrollment_no;
+      dropdown.classList.remove('open');
+      // Advance to step 2 with this student
+      goWizardStep2(m);
+    }
+
+    // ── Wizard Navigation ──
+    function goWizardStep(n) {
+      [1,2,3].forEach(i => {
+        document.getElementById(`wstep-${i}`)?.classList.toggle('active', i === n);
+        const dot = document.getElementById(`sdot-${i}`);
+        const lbl = document.getElementById(`slbl-${i}`);
+        if (dot) dot.className = 'step-dot' + (i < n ? ' done' : i === n ? ' active' : '');
+        if (lbl) lbl.className = 'step-label' + (i < n ? ' done' : i === n ? ' active' : '');
+        const line = document.getElementById(`sline-${i}`);
+        if (line) line.className = 'step-line' + (i < n ? ' done' : '');
+      });
+    }
+
+    function buildPreview(m) {
+      const rows = [
+        ['Enrollment No', `<span class="preview-enr">${esc(m.enrollment_no)}</span>`],
+        ['Full Name',     `<span class="preview-name">${esc(m.name || '—')}</span>`],
+        ['College',       esc(m.collage     || '—')],
+        ['Department',    esc(m.department  || '—')],
+        ['Branch',        esc(m.branch      || '—')],
+        ['PU Mail',       esc(m.pu_mail     || '—')],
+        ['Phone',         esc(m.phone       || '—')],
+      ];
+      return rows.map(([k,v]) =>
+        `<div class="preview-row"><span class="preview-key">${k}</span><span class="preview-val">${v}</span></div>`
+      ).join('');
+    }
+
+    function goWizardStep2(m) {
+      S.wizardStudent = m;
+      document.getElementById('student-preview').innerHTML  = buildPreview(m);
+      document.getElementById('student-preview-2').innerHTML = buildPreview(m);
+      goWizardStep(2);
+    }
+
+    async function wizardLookup() {
+      const enr = document.getElementById('enroll-enrollment').value.trim();
+      const errEl = document.getElementById('wstep-1-err');
+      errEl.style.display = 'none';
+      if (!enr) { errEl.textContent = 'Please enter an enrollment number.'; errEl.style.display = 'block'; return; }
+
+      // Try from cached masterData first
+      const local = S.masterData.find(m => m.enrollment_no.toLowerCase() === enr.toLowerCase());
+      if (local) { goWizardStep2(local); return; }
+
+      // Fallback: fetch from DB
+      const { data, error } = await S.sb.from('students_master')
+        .select('*').eq('enrollment_no', enr).single();
+      if (error || !data) {
+        errEl.textContent = `❌ Enrollment number "${esc(enr)}" not found in master database.`;
+        errEl.style.display = 'block';
+        return;
+      }
+      goWizardStep2(data);
+    }
+
+    function wizardConfirm() {
+      if (!S.wizardStudent) return;
+      goWizardStep(3);
+      startEnrollCamera();
+    }
+
+    function wizardReset() {
+      S.wizardStudent = null;
+      S.capturedDescriptor = null;
+      document.getElementById('enroll-enrollment').value = '';
+      document.getElementById('wstep-1-err').style.display = 'none';
+      document.getElementById('face-dot').className = 'face-status-dot';
+      document.getElementById('face-status-text').textContent = 'No face captured';
+      document.getElementById('enroll-msg').textContent = '';
+      document.getElementById('enroll-msg').className = '';
+      stopEnrollCamera();
+      goWizardStep(1);
+    }
+
+    function wizardBack() { goWizardStep(2); }
+
+    // Close dropdown on outside click
+    document.addEventListener('click', e => {
+      if (!e.target.closest('.ac-wrap')) {
+        document.getElementById('enroll-ac')?.classList.remove('open');
+      }
+    });
+
+    // Clear autofill styling when enrollment is manually edited
+    document.addEventListener('input', e => {
+      if (e.target.id === 'enroll-enrollment') {
+        ['enroll-name','enroll-pumail','enroll-phone','enroll-collage','enroll-branch']
+          .forEach(id => document.getElementById(id)?.classList.remove('autofilled'));
+        document.getElementById('autofill-badge')?.classList.remove('show');
+      }
+    });
+
+    // ════════════════════════════════════════════════════════
+    //  ENROLLMENT — Capture Face
     // ════════════════════════════════════════════════════════
     async function startEnrollCamera() {
       stopEnrollCamera();
@@ -1564,41 +1808,37 @@
     //  ENROLLMENT — Save Student
     // ════════════════════════════════════════════════════════
     async function saveStudent() {
-      const name = document.getElementById('enroll-name').value.trim();
-      const enr = document.getElementById('enroll-enrollment').value.trim();
-      const email = document.getElementById('enroll-email').value.trim();
-      const phone = document.getElementById('enroll-phone').value.trim();
-      const dept = document.getElementById('enroll-dept').value;
+      if (!S.wizardStudent) { return; }
+      const m   = S.wizardStudent;
       const msg = document.getElementById('enroll-msg');
 
-      if (!name || !enr) { showMsg('Name and Enrollment Number are required.', false); return; }
       if (!S.capturedDescriptor) { showMsg('Please capture face first.', false); return; }
 
       // Convert Float32Array to plain array for JSON storage
       const descriptorArr = Array.from(S.capturedDescriptor);
-
       try { validateDescriptor(descriptorArr); }
       catch (e) { showMsg('Face data invalid. Re-capture.', false); return; }
 
       const { error } = await S.sb.from('students').insert({
-        name, enrollment_no: enr, email, phone, department: dept,
+        enrollment_no: m.enrollment_no,
+        name:          m.name,
+        pu_mail:       m.pu_mail,
+        phone:         m.phone,
+        collage:       m.collage,
+        department:    m.department,
+        branch:        m.branch,
         face_descriptor: descriptorArr
       });
 
       if (error) {
-        showMsg('Error: ' + (error.message.includes('duplicate') ? 'Enrollment number already exists.' : error.message), false);
+        showMsg('Error: ' + (error.message.includes('duplicate') ? 'Already enrolled.' : error.message), false);
         return;
       }
 
-      showMsg(`✓ ${name} enrolled successfully!`, true);
-      // Reset form
-      ['enroll-name', 'enroll-email', 'enroll-phone'].forEach(id => document.getElementById(id).value = '');
-      document.getElementById('enroll-enrollment').value = '';
-      document.getElementById('enroll-dept').value = '';
-      document.getElementById('face-dot').className = 'face-status-dot';
-      document.getElementById('face-status-text').textContent = 'No face captured';
-      S.capturedDescriptor = null;
+      showMsg(`✓ ${m.name} enrolled successfully!`, true);
       loadStudents();
+      // Auto-reset wizard after 2s
+      setTimeout(() => wizardReset(), 2000);
 
       function showMsg(text, ok) {
         msg.textContent = text;
@@ -1634,9 +1874,11 @@
           <div class="student-card-name">${esc(s.name)}</div>
           <div class="student-card-enrollment">${esc(s.enrollment_no)}</div>
           <div class="student-card-details">
+            ${s.collage    ? `🏫 ${esc(s.collage)}<br>`    : ''}
             ${s.department ? `🏛 ${esc(s.department)}<br>` : ''}
-            ${s.email ? `✉ ${esc(s.email)}<br>` : ''}
-            ${s.phone ? `📞 ${esc(s.phone)}` : ''}
+            ${s.branch     ? `🌿 ${esc(s.branch)}<br>`     : ''}
+            ${s.pu_mail    ? `✉ ${esc(s.pu_mail)}<br>`    : ''}
+            ${s.phone      ? `📞 ${esc(s.phone)}`          : ''}
           </div>
           <button class="student-card-delete" onclick="deleteStudent('${s.id}','${esc(s.name)}')">Delete</button>
         </div>
