@@ -857,30 +857,41 @@
             <div class="step-body">
               <div class="step-title">Run this SQL in your project</div>
               <div class="step-desc">Go to <b>SQL Editor</b> in your Supabase dashboard and run:</div>
-              <div class="sql-box" id="sql-block">CREATE TABLE students (
-                id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-                name TEXT NOT NULL,
-                enrollment_no TEXT UNIQUE NOT NULL,
-                email TEXT,
-                phone TEXT,
-                department TEXT,
-                face_descriptor JSONB NOT NULL,
-                created_at TIMESTAMPTZ DEFAULT NOW()
-                );
+              <div class="sql-box" id="sql-block">-- Swift Attendance: Secure Setup
+CREATE TABLE students (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  name TEXT NOT NULL,
+  enrollment_no TEXT UNIQUE NOT NULL,
+  pu_mail TEXT,
+  phone TEXT,
+  collage TEXT,
+  department TEXT,
+  branch TEXT,
+  face_descriptor JSONB NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
 
-                CREATE TABLE attendance (
-                id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-                student_id UUID REFERENCES students(id) ON DELETE CASCADE,
-                date DATE NOT NULL DEFAULT CURRENT_DATE,
-                time_in TIME NOT NULL DEFAULT CURRENT_TIME,
-                created_at TIMESTAMPTZ DEFAULT NOW(),
-                UNIQUE(student_id, date)
-                );
+CREATE TABLE attendance (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  student_id UUID REFERENCES students(id) ON DELETE CASCADE,
+  date DATE NOT NULL DEFAULT CURRENT_DATE,
+  time_in TIME NOT NULL DEFAULT CURRENT_TIME,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(student_id, date)
+);
 
-                ALTER TABLE students ENABLE ROW LEVEL SECURITY;
-                ALTER TABLE attendance ENABLE ROW LEVEL SECURITY;
-                CREATE POLICY "allow_all_students" ON students FOR ALL USING (true) WITH CHECK (true);
-                CREATE POLICY "allow_all_attendance" ON attendance FOR ALL USING (true) WITH CHECK (true);</div>
+-- Enable Row Level Security
+ALTER TABLE students ENABLE ROW LEVEL SECURITY;
+ALTER TABLE attendance ENABLE ROW LEVEL SECURITY;
+
+-- 1. Students: Public can read for recognition; only Admins can manage.
+CREATE POLICY "Public: Read students" ON students FOR SELECT USING (true);
+CREATE POLICY "Admin: Manage students" ON students FOR ALL TO authenticated USING (true);
+
+-- 2. Attendance: Public can read/insert; only Admins can delete/modify logs.
+CREATE POLICY "Public: Read attendance" ON attendance FOR SELECT USING (true);
+CREATE POLICY "Public: Insert attendance" ON attendance FOR INSERT WITH CHECK (true);
+CREATE POLICY "Admin: Manage attendance" ON attendance FOR ALL TO authenticated USING (true);</div>
               <button class="copy-btn" onclick="copySQL()">Copy</button>
             </div>
           </div>
@@ -897,10 +908,6 @@
                 <div class="field">
                   <label>Anon / Public Key</label>
                   <input type="text" id="setup-key" placeholder="eyJhbGciOiJ..." />
-                </div>
-                <div class="field">
-                  <label>Admin Password (choose one)</label>
-                  <input type="password" id="setup-pass" placeholder="Set a password for the admin panel" />
                 </div>
                 <div id="setup-error"></div>
                 <div id="setup-success"></div>
@@ -1134,7 +1141,7 @@
         <div id="tab-content-students" class="hidden">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
           <div style="font-size:13px;color:var(--text2);font-weight:600;" id="student-count">Loading…</div>
-            <button class="btn btn-ghost btn-sm" onclick="loadStudents()">⟳ Refresh</button>
+            <button class="btn btn-ghost btn-sm" onclick="loadStudents(true)">⟳ Refresh</button>
           </div>
           <div class="students-grid" id="students-grid">
             <div class="empty-state">Loading students...</div>
@@ -1212,9 +1219,6 @@
     // ════════════════════════════════════════════════════════
     const HARDCODED_URL = 'https://kclfzetnbvwvlfnzolne.supabase.co';
     const HARDCODED_KEY = 'sb_publishable_5VcNGj_DtvPV28WPV1fTGw_WdywaxS_';
-
-    // Rate limiting for admin login
-    const loginAttempts = { count: 0, blockedUntil: 0 };
 
     window.addEventListener('DOMContentLoaded', async () => {
       S.config = { url: HARDCODED_URL, key: HARDCODED_KEY };
@@ -1323,7 +1327,7 @@
 
       if (page !== 'kiosk' && S.kioskStream) stopKiosk();
       if (page === 'kiosk') startKiosk();
-      if (page === 'admin') { startEnrollCamera(); loadStudents(); loadMasterData(); }
+      if (page === 'admin') { startEnrollCamera(); loadStudents(true); loadMasterData(); }
       if (page !== 'admin' && S.enrollStream) stopEnrollCamera();
     }
 
@@ -1340,13 +1344,6 @@
     }
 
     async function checkAdminPass() {
-      const now = Date.now();
-      if (now < loginAttempts.blockedUntil) {
-        const secs = Math.ceil((loginAttempts.blockedUntil - now) / 1000);
-        showAdminError(`Too many attempts. Wait ${secs}s.`);
-        return;
-      }
-
       const email = document.getElementById('admin-email-input')?.value?.trim();
       const pass = document.getElementById('admin-pass-input').value;
 
@@ -1360,14 +1357,7 @@
         const { data, error } = await S.sb.auth.signInWithPassword({ email, password: pass });
 
         if (error || !data.session) {
-          loginAttempts.count++;
-          if (loginAttempts.count >= 5) {
-            loginAttempts.blockedUntil = Date.now() + 30000; // 30s lockout
-            loginAttempts.count = 0;
-            showAdminError('Too many failed attempts. Locked for 30s.');
-          } else {
-            showAdminError(`Incorrect credentials. (${5 - loginAttempts.count} attempts left)`);
-          }
+          showAdminError('Incorrect credentials. Please check your email and password.');
           return;
         }
 
@@ -1416,7 +1406,7 @@
       });
       S.currentTab = tab;
       localStorage.setItem(LAST_TAB_KEY, tab);
-      if (tab === 'students') loadStudents();
+      if (tab === 'students') loadStudents(true);
       if (tab === 'logs') {
         const today = todayStr();
         document.getElementById('log-date').value = today;
@@ -1439,14 +1429,12 @@
     async function connectSupabase() {
       const url = document.getElementById('setup-url').value.trim();
       const key = document.getElementById('setup-key').value.trim();
-      const pass = document.getElementById('setup-pass').value.trim();
       const errEl = document.getElementById('setup-error');
       const okEl = document.getElementById('setup-success');
       errEl.style.display = 'none';
       okEl.style.display = 'none';
 
       if (!url || !key) { errEl.textContent = 'Please fill in URL and Key.'; errEl.style.display = 'block'; return; }
-      if (!pass) { errEl.textContent = 'Please set an admin password.'; errEl.style.display = 'block'; return; }
 
       const btn = document.getElementById('setup-connect-btn');
       btn.disabled = true; btn.textContent = 'Connecting…';
@@ -1459,7 +1447,6 @@
 
         S.config = { url, key };
         localStorage.setItem(CONFIG_KEY, JSON.stringify(S.config));
-        localStorage.setItem(ADMIN_KEY, pass);
 
         okEl.textContent = '✓ Connected! Launching kiosk...';
         okEl.style.display = 'block';
@@ -2015,9 +2002,10 @@
     // ════════════════════════════════════════════════════════
     //  STUDENTS
     // ════════════════════════════════════════════════════════
-    async function loadStudents() {
+    async function loadStudents(full = false) {
       if (!S.sb) return;
-      const { data, error } = await S.sb.from('students').select('*').order('created_at');
+      const columns = full ? '*' : 'id, name, enrollment_no, department, face_descriptor';
+      const { data, error } = await S.sb.from('students').select(columns).order('created_at');
       if (!error) {
         S.students = data || [];
         // Pre-convert face descriptors to Float32Array once here so
