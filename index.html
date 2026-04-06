@@ -798,6 +798,132 @@
       display: flex; flex-direction: column; gap: 14px;
       margin-bottom: 20px;
     }
+
+    /* ─── PIN WALL ─── */
+    #page-pin-wall {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      width: 100%;
+      position: fixed;
+      inset: 0;
+      z-index: 2000;
+      background: #000;
+      overflow: hidden;
+    }
+    .pin-ambient-blobs {
+      position: absolute; inset: 0; z-index: 0;
+      filter: blur(140px); opacity: 0.5;
+    }
+    .blob {
+      position: absolute; border-radius: 50%;
+      animation: blobMove 12s infinite alternate ease-in-out;
+    }
+    .blob-1 { width: 450px; height: 450px; background: rgba(240,81,56,0.3); top: -10%; left: -10%; }
+    .blob-2 { width: 500px; height: 500px; background: rgba(10,132,255,0.25); bottom: -15%; right: -10%; animation-delay: -4s; }
+    .blob-3 { width: 350px; height: 350px; background: rgba(255,214,10,0.15); top: 30%; right: 20%; animation-delay: -8s; }
+    @keyframes blobMove {
+      0% { transform: translate(0,0) scale(1); }
+      100% { transform: translate(60px, 40px) scale(1.1); }
+    }
+
+    .pin-card {
+      position: relative; z-index: 1;
+      width: 100%; max-width: 380px;
+      padding: 56px 36px;
+      text-align: center;
+      background: rgba(20, 20, 22, 0.45);
+      -webkit-backdrop-filter: blur(45px) saturate(220%);
+      backdrop-filter: blur(45px) saturate(220%);
+      border: 1px solid rgba(255, 255, 255, 0.08); /* Outer border */
+      border-radius: 44px;
+      box-shadow: 0 40px 100px rgba(0, 0, 0, 0.7), 
+                  inset 0 0 0 1px rgba(255, 255, 255, 0.05); /* Inner thin border */
+      animation: pinPopPremium .8s cubic-bezier(.16, 1, .3, 1);
+    }
+    @keyframes pinPopPremium {
+      from { transform: scale(0.8) translateY(30px); opacity: 0; }
+      to { transform: scale(1) translateY(0); opacity: 1; }
+    }
+    .pin-header { margin-bottom: 40px; }
+    .pin-icon { 
+      font-size: 52px; margin-bottom: 18px; 
+      filter: drop-shadow(0 4px 25px rgba(240,81,56,0.4));
+      animation: iconFloat 4s ease-in-out infinite;
+    }
+    @keyframes iconFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+    .pin-title { 
+      font-size: 26px; font-weight: 300; letter-spacing: -0.01em; margin-bottom: 10px;
+      color: #fff; text-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+    .pin-sub { font-size: 14px; color: var(--text2); font-weight: 400; opacity: 0.8; }
+    
+    .pin-display {
+      display: flex; justify-content: center; gap: 22px; margin-bottom: 52px;
+    }
+    .pin-dot {
+      width: 12px; height: 12px; border-radius: 50%;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.03);
+      transition: all 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.4);
+    }
+    .pin-dot.active {
+      background: #fff;
+      box-shadow: 0 0 20px rgba(255,255,255,0.4), 
+                  0 0 40px rgba(255,255,255,0.15),
+                  inset 0 1px 1px rgba(255,255,255,0.8);
+      transform: scale(1.6);
+      border-color: transparent;
+    }
+    .pin-keypad {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 24px; margin: 0 auto; max-width: 290px;
+    }
+    .pin-key {
+      position: relative; aspect-ratio: 1; border-radius: 50%;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      font-size: 28px; font-weight: 400; color: #fff;
+      cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      user-select: none; -webkit-tap-highlight-color: transparent;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2), inset 0 1px 1px rgba(255,255,255,0.05);
+    }
+    .pin-key:hover { 
+      background: rgba(255,255,255,0.08); 
+      border-color: rgba(255,255,255,0.15);
+      transform: translateY(-3px) scale(1.05);
+      box-shadow: 0 12px 25px rgba(0,0,0,0.4);
+    }
+    .pin-key:active { 
+      transform: scale(0.9) translateY(0); 
+      background: rgba(255,255,255,0.12);
+      box-shadow: inset 0 3px 12px rgba(0,0,0,0.5);
+    }
+    .pin-key.del { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.1em; }
+    .pin-key-sub { font-size: 9px; color: rgba(255,255,255,0.3); font-weight: 700; margin-top: -3px; }
+
+    /* Staggered Entry Animation */
+    .pin-key { opacity: 0; transform: translateY(20px); }
+    #page-pin-wall.flex .pin-key {
+      animation: keyFadePremium 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes keyFadePremium { to { opacity: 1; transform: translateY(0); } }
+
+    .shake { animation: pinShakePremium .4s cubic-bezier(.36,.07,.19,.97) both; }
+    @keyframes pinShakePremium {
+      10%, 90% { transform: translate3d(-2px, 0, 0); }
+      20%, 80% { transform: translate3d(4px, 0, 0); }
+      30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
+      40%, 60% { transform: translate3d(6px, 0, 0); }
+    }
+    
+    .unlock-p-anim { animation: pinUnlockAway 0.8s cubic-bezier(.16, 1, .3, 1) forwards; }
+    @keyframes pinUnlockAway {
+      to { transform: scale(1.1); opacity: 0; filter: blur(20px); }
+    }
     .preview-row {
       display: flex; justify-content: space-between; align-items: flex-start;
       gap: 10px; border-bottom: 1px solid var(--border); padding-bottom: 12px;
@@ -824,7 +950,43 @@
 </head>
 
 <body>
-  <div id="app">
+    <div id="app">
+      <!-- ─── PIN WALL ─── -->
+      <div id="page-pin-wall">
+        <div class="pin-ambient-blobs">
+          <div class="blob blob-1"></div>
+          <div class="blob blob-2"></div>
+          <div class="blob blob-3"></div>
+        </div>
+        <div class="pin-card" id="pin-card">
+          <div class="pin-header">
+            <div class="pin-icon">🔐</div>
+            <h1 class="pin-title">Authorize Access</h1>
+            <p class="pin-sub">Enter PIN to unlock Swift Attendance</p>
+          </div>
+          <div class="pin-display">
+            <div class="pin-dot" id="dot-0"></div>
+            <div class="pin-dot" id="dot-1"></div>
+            <div class="pin-dot" id="dot-2"></div>
+            <div class="pin-dot" id="dot-3"></div>
+          </div>
+          <div class="pin-keypad" id="pin-keypad">
+            <div class="pin-key" style="animation-delay: 0.1s" onclick="handlePinKey('1')">1<div class="pin-key-sub"></div></div>
+            <div class="pin-key" style="animation-delay: 0.15s" onclick="handlePinKey('2')">2<div class="pin-key-sub">ABC</div></div>
+            <div class="pin-key" style="animation-delay: 0.2s" onclick="handlePinKey('3')">3<div class="pin-key-sub">DEF</div></div>
+            <div class="pin-key" style="animation-delay: 0.25s" onclick="handlePinKey('4')">4<div class="pin-key-sub">GHI</div></div>
+            <div class="pin-key" style="animation-delay: 0.3s" onclick="handlePinKey('5')">5<div class="pin-key-sub">JKL</div></div>
+            <div class="pin-key" style="animation-delay: 0.35s" onclick="handlePinKey('6')">6<div class="pin-key-sub">MNO</div></div>
+            <div class="pin-key" style="animation-delay: 0.4s" onclick="handlePinKey('7')">7<div class="pin-key-sub">PQRS</div></div>
+            <div class="pin-key" style="animation-delay: 0.45s" onclick="handlePinKey('8')">8<div class="pin-key-sub">TUV</div></div>
+            <div class="pin-key" style="animation-delay: 0.5s" onclick="handlePinKey('9')">9<div class="pin-key-sub">WXYZ</div></div>
+            <div class="pin-key del" style="animation-delay: 0.55s" onclick="handlePinKey('del')">DEL</div>
+            <div class="pin-key" style="animation-delay: 0.6s" onclick="handlePinKey('0')">0<div class="pin-key-sub">+</div></div>
+            <div class="pin-key del" style="animation-delay: 0.65s" onclick="handlePinKey('clr')">CLR</div>
+          </div>
+        </div>
+      </div>
+
 
     <!-- ═══════════════════════════════════ LOADING OVERLAY ═══════════════════════════════════ -->
     <div id="loading-overlay" class="loading-overlay hidden">
@@ -1207,6 +1369,8 @@ CREATE POLICY "Admin: Manage attendance" ON attendance FOR ALL TO authenticated 
       currentTab: 'enroll',
       logsData: [],
       adminSession: null,
+      pinAuthorized: false,
+      loginAttempts: { count: 0 },
     };
 
     const MODEL_URL = 'https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@0.22.2/weights';
@@ -1225,6 +1389,23 @@ CREATE POLICY "Admin: Manage attendance" ON attendance FOR ALL TO authenticated 
       S.config = { url: HARDCODED_URL, key: HARDCODED_KEY };
       initSupabase(S.config.url, S.config.key);
 
+      // PIN authorization is required on every reload.
+      showPage('pin-wall');
+
+      updateClock();
+      setInterval(updateClock, 1000);
+      checkNewDay();
+    });
+
+    // Handle physical keyboard input
+    window.addEventListener('keydown', e => {
+      if (S.currentPage !== 'pin-wall') return;
+      if (e.key >= '0' && e.key <= '9') handlePinKey(e.key);
+      if (e.key === 'Backspace') handlePinKey('del');
+      if (e.key === 'Escape' || e.key === 'Delete') handlePinKey('clr');
+    });
+
+    async function proceedInit() {
       // Check if already logged in via Supabase session
       const { data: { session } } = await S.sb.auth.getSession();
       S.adminSession = session;
@@ -1239,11 +1420,7 @@ CREATE POLICY "Admin: Manage attendance" ON attendance FOR ALL TO authenticated 
         showPage('kiosk');
         startKiosk();
       }
-
-      updateClock();
-      setInterval(updateClock, 1000);
-      checkNewDay();
-    });
+    }
 
     function updateClock() {
       const el = document.getElementById('kiosk-clock');
@@ -1314,22 +1491,74 @@ CREATE POLICY "Admin: Manage attendance" ON attendance FOR ALL TO authenticated 
     //  NAVIGATION
     // ════════════════════════════════════════════════════════
     function showPage(page) {
-      ['setup', 'kiosk', 'admin-login', 'admin'].forEach(p => {
+      ['setup', 'kiosk', 'admin-login', 'admin', 'pin-wall'].forEach(p => {
         const el = document.getElementById(`page-${p}`);
         if (el) el.style.display = 'none';
+        if (el && p === 'pin-wall') el.classList.remove('flex');
       });
 
       const target = document.getElementById(`page-${page}`);
       if (!target) return;
-      const flex = ['kiosk', 'admin-login', 'admin'].includes(page);
-      target.style.display = flex ? 'flex' : 'block';
+      
+      const isFlex = ['kiosk', 'admin-login', 'admin', 'pin-wall'].includes(page);
+      target.style.display = isFlex ? 'flex' : 'block';
+      if (isFlex && page === 'pin-wall') target.classList.add('flex');
+      
       S.currentPage = page;
-      localStorage.setItem(LAST_PAGE_KEY, page);
+      if (page !== 'pin-wall') localStorage.setItem(LAST_PAGE_KEY, page);
 
       if (page !== 'kiosk' && S.kioskStream) stopKiosk();
       if (page === 'kiosk') startKiosk();
       if (page === 'admin') { startEnrollCamera(); loadStudents(true); loadMasterData(); }
       if (page !== 'admin' && S.enrollStream) stopEnrollCamera();
+    }
+
+    // ── PIN LOGIC ──
+    let pinBuffer = '';
+    const CORRECT_PIN = '1234'; 
+
+    function handlePinKey(key) {
+      if (key === 'del') {
+        pinBuffer = pinBuffer.slice(0, -1);
+      } else if (key === 'clr') {
+        pinBuffer = '';
+      } else if (pinBuffer.length < 4) {
+        pinBuffer += key;
+      }
+      
+      updatePinDisplay();
+      
+      if (pinBuffer.length === 4) {
+        setTimeout(verifyPin, 150);
+      }
+    }
+
+    function updatePinDisplay() {
+      for (let i = 0; i < 4; i++) {
+        const dot = document.getElementById(`dot-${i}`);
+        if (dot) dot.classList.toggle('active', i < pinBuffer.length);
+      }
+    }
+
+    async function verifyPin() {
+      if (pinBuffer === CORRECT_PIN) {
+        S.pinAuthorized = true;
+        
+        const card = document.getElementById('pin-card');
+        card.classList.add('unlock-p-anim');
+        
+        setTimeout(() => {
+          proceedInit();
+        }, 400); 
+      } else {
+        const card = document.getElementById('pin-card');
+        card.classList.add('shake');
+        setTimeout(() => {
+          card.classList.remove('shake');
+          pinBuffer = '';
+          updatePinDisplay();
+        }, 400);
+      }
     }
 
     async function goAdminLogin() {
@@ -1363,7 +1592,7 @@ CREATE POLICY "Admin: Manage attendance" ON attendance FOR ALL TO authenticated 
         }
 
         // Success
-        loginAttempts.count = 0;
+        S.loginAttempts.count = 0;
         S.adminSession = data.session;
         document.getElementById('admin-pass-input').value = '';
         if (email) document.getElementById('admin-email-input').value = '';
