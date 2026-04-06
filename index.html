@@ -1515,7 +1515,15 @@ CREATE POLICY "Admin: Manage attendance" ON attendance FOR ALL TO authenticated 
 
     // ── PIN LOGIC ──
     let pinBuffer = '';
-    const CORRECT_PIN = '1234'; 
+    // SHA-256 hash of '4321' to prevent visual discovery in open source.
+    const PIN_HASH = 'fe2592b42a727e977f055947385b709cc82b16b9a87f888c6abf3900d65d0cdc3';
+
+    async function sha256(message) {
+      const msgBuffer = new TextEncoder().encode(message);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
 
     function handlePinKey(key) {
       if (key === 'del') {
@@ -1541,7 +1549,8 @@ CREATE POLICY "Admin: Manage attendance" ON attendance FOR ALL TO authenticated 
     }
 
     async function verifyPin() {
-      if (pinBuffer === CORRECT_PIN) {
+      const inputHash = await sha256(pinBuffer);
+      if (inputHash === PIN_HASH) {
         S.pinAuthorized = true;
         
         const card = document.getElementById('pin-card');
