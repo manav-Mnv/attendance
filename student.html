@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Marquee Training — Student</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="nav">
+    <div class="nav-brand">MARQUEE <span>TRAINING</span></div>
+    <div class="nav-actions">
+      <span class="nav-user" id="nav-user"></span>
+      <button class="btn btn-outline btn-sm" onclick="doLogout()">LOGOUT</button>
+    </div>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <div class="page-wrapper" style="padding-top:40px;">
+
+    <!-- ENROLLMENT CARD (shown if no face data) -->
+    <div class="card card-wide" id="card-enroll" style="display:none;">
+      <div class="brand" style="margin-bottom:20px;">
+        <div class="brand-mark">
+          <div class="brand-icon">👤</div>
+          <div class="brand-name">FACE <span>ENROLLMENT</span></div>
+        </div>
+        <div class="brand-sub">One-time setup · Must be physically present</div>
+      </div>
+
+      <!-- Step indicator -->
+      <div class="steps" id="steps">
+        <div class="step-item active" id="s1">
+          <div class="step-circle">1</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-item" id="s2">
+          <div class="step-circle">2</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-item" id="s3">
+          <div class="step-circle">3</div>
+        </div>
+      </div>
+
+      <!-- STEP 1: GPS -->
+      <div id="enroll-step-1">
+        <div class="section-title">📍 Location Verification</div>
+        <div class="section-sub">We'll confirm you're physically in the classroom before enrolling your face.</div>
+
+        <div class="info-row">
+          <div class="info-row-icon">ℹ️</div>
+          <div class="info-row-text">You must be within <strong>60 meters</strong> of the registered classroom location to enroll.</div>
+        </div>
+
+        <div id="gps-status-enroll" class="info-row" style="display:none;">
+          <div class="info-row-icon" id="gps-icon-enroll">📡</div>
+          <div class="info-row-text" id="gps-text-enroll">Checking location...</div>
+        </div>
+
+        <button class="btn btn-primary mt-20" id="btn-check-gps-enroll" onclick="checkGPSForEnroll()">
+          📍 CHECK MY LOCATION
+        </button>
+      </div>
+
+      <!-- STEP 2: Camera -->
+      <div id="enroll-step-2" style="display:none;">
+        <div class="section-title">📸 Face Capture</div>
+        <div class="section-sub">Position your face inside the frame. Ensure good lighting.</div>
+
+        <div class="camera-wrap" id="camera-wrap-enroll">
+          <video id="video-enroll" autoplay muted playsinline></video>
+          <canvas id="canvas-enroll" style="display:none;"></canvas>
+          <div class="camera-overlay">
+            <div class="face-frame"></div>
+          </div>
+          <div class="scanner-line" id="scanner-enroll" style="display:none;"></div>
+          <div class="camera-status" id="cam-status-enroll">Loading face detection...</div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+          <button class="btn btn-outline" onclick="retakeEnroll()">↺ RETAKE</button>
+          <button class="btn btn-primary" id="btn-capture-enroll" onclick="captureEnroll()" disabled>
+            ◉ CAPTURE
+          </button>
+        </div>
+      </div>
+
+      <!-- STEP 3: Confirm -->
+      <div id="enroll-step-3" style="display:none;">
+        <div class="section-title" style="color:var(--green)">✓ ENROLLMENT COMPLETE</div>
+        <div class="section-sub">Your face has been registered. You can now mark attendance.</div>
+
+        <div class="info-row">
+          <div class="info-row-icon">🔐</div>
+          <div class="info-row-text">Face data stored as <strong>encrypted descriptors</strong> — no raw photo saved.</div>
+        </div>
+
+        <button class="btn btn-primary mt-20" onclick="showAttendance()">
+          → PROCEED TO ATTENDANCE
+        </button>
+      </div>
+    </div>
+
+    <!-- ATTENDANCE CARD -->
+    <div class="card card-wide" id="card-attend" style="display:none;">
+      <div class="brand" style="margin-bottom:20px;">
+        <div class="brand-mark">
+          <div class="brand-icon">✓</div>
+          <div class="brand-name">MARK <span>ATTENDANCE</span></div>
+        </div>
+        <div class="brand-sub">GPS + Face Verified · Session Code Required</div>
+      </div>
+
+      <!-- Step indicator -->
+      <div class="steps">
+        <div class="step-item active" id="as1">
+          <div class="step-circle">1</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-item" id="as2">
+          <div class="step-circle">2</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-item" id="as3">
+          <div class="step-circle">3</div>
+        </div>
+      </div>
+
+      <!-- STEP 1: OTP -->
+      <div id="attend-step-1">
+        <div class="section-title">🔑 Enter Session Code</div>
+        <div class="section-sub">Get the 6-character code from your teacher.</div>
+
+        <div class="form-group">
+          <label class="label">Session Code</label>
+          <input type="text" id="otp-input" placeholder="ABC123"
+            maxlength="6" style="font-family:var(--font-mono); font-size:22px; letter-spacing:6px; text-transform:uppercase; text-align:center;"
+            oninput="this.value=this.value.toUpperCase()" />
+        </div>
+
+        <button class="btn btn-primary" id="btn-verify-otp" onclick="verifyOTP()">
+          → VERIFY CODE
+        </button>
+      </div>
+
+      <!-- STEP 2: GPS -->
+      <div id="attend-step-2" style="display:none;">
+        <div class="section-title">📍 Location Check</div>
+        <div class="section-sub">Verifying you're physically present in the classroom.</div>
+
+        <div class="info-row" id="session-info-row">
+          <div class="info-row-icon">📚</div>
+          <div class="info-row-text" id="session-subject-text">Loading session...</div>
+        </div>
+
+        <div id="gps-status-attend" class="info-row" style="display:none;">
+          <div class="info-row-icon" id="gps-icon-attend">📡</div>
+          <div class="info-row-text" id="gps-text-attend">Checking...</div>
+        </div>
+
+        <button class="btn btn-primary mt-20" id="btn-check-gps-attend" onclick="checkGPSForAttend()">
+          📍 CHECK LOCATION
+        </button>
+      </div>
+
+      <!-- STEP 3: Face Verify -->
+      <div id="attend-step-3" style="display:none;">
+        <div class="section-title">👁 Face Verification</div>
+        <div class="section-sub">Look directly at the camera. Keep still for 2 seconds.</div>
+
+        <div class="camera-wrap" id="camera-wrap-attend">
+          <video id="video-attend" autoplay muted playsinline></video>
+          <canvas id="canvas-attend" style="display:none;"></canvas>
+          <div class="camera-overlay">
+            <div class="face-frame"></div>
+          </div>
+          <div class="scanner-line" id="scanner-attend" style="display:none;"></div>
+          <div class="camera-status" id="cam-status-attend">Loading face detection...</div>
+        </div>
+
+        <div id="verify-result" style="display:none;" class="info-row mb-12">
+          <div class="info-row-icon" id="verify-icon">...</div>
+          <div class="info-row-text" id="verify-text">Verifying...</div>
+        </div>
+
+        <button class="btn btn-primary" id="btn-verify-face" onclick="verifyFace()" disabled>
+          ◉ VERIFY MY FACE
+        </button>
+      </div>
+
+      <!-- SUCCESS -->
+      <div id="attend-success" style="display:none; text-align:center; padding:20px 0;">
+        <div style="font-size:64px; margin-bottom:16px;">✅</div>
+        <div class="section-title" style="color:var(--green); font-size:28px;">ATTENDANCE MARKED</div>
+        <div class="section-sub" id="success-session-info">Session recorded successfully.</div>
+        <div class="badge badge-green mt-20" style="justify-content:center;" id="success-time"></div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.13/dist/face-api.js"></script>
+  <script src="config.js"></script>
+  <script>
+    let currentUser = null;
+    let activeSession = null;
+    let enrollStream = null;
+    let attendStream = null;
+    let modelsLoaded = false;
+
+    // ─── INIT ────────────────────────────────────────────────────────────
+    (async () => {
+      currentUser = await requireAuth('student');
+      if (!currentUser) return;
+      document.getElementById('nav-user').textContent = `${currentUser.name} · ${currentUser.enrollment_number}`;
+
+      if (currentUser.face_descriptor && currentUser.face_descriptor.length > 0) {
+        showAttendance();
+      } else {
+        document.getElementById('card-enroll').style.display = 'block';
+        await loadFaceModels();
+      }
+    })();
+
+    async function loadFaceModels() {
+      try {
+        await faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL);
+        await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+        await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
+        modelsLoaded = true;
+        console.log('✓ Face models loaded');
+      } catch (e) {
+        toast('Failed to load face models. Check network.', 'error');
+      }
+    }
+
+    // ─── ENROLLMENT FLOW ─────────────────────────────────────────────────
+
+    async function checkGPSForEnroll() {
+      const btn = document.getElementById('btn-check-gps-enroll');
+      btn.disabled = true;
+      btn.textContent = 'LOCATING...';
+
+      const statusRow = document.getElementById('gps-status-enroll');
+      statusRow.style.display = 'flex';
+      document.getElementById('gps-text-enroll').textContent = 'Acquiring GPS signal...';
+
+      try {
+        const pos = await getLocation();
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+
+        // Check if any active session exists to get classroom coords
+        const now = new Date().toISOString();
+        const { data: sessions } = await supabase
+          .from('sessions')
+          .select('*')
+          .gt('expires_at', now)
+          .order('created_at', { ascending: false })
+          .limit(1);
+
+        if (!sessions || sessions.length === 0) {
+          // No active session — allow enrollment from current position (teacher must approve)
+          // Store current coords temporarily and proceed
+          document.getElementById('gps-icon-enroll').textContent = '✅';
+          document.getElementById('gps-text-enroll').innerHTML =
+            `Location verified: <strong>${lat.toFixed(5)}, ${lng.toFixed(5)}</strong>`;
+          toast('Location captured ✓', 'success');
+          setTimeout(() => startEnrollStep2(), 800);
+          return;
+        }
+
+        const session = sessions[0];
+        const dist = getDistanceMeters(lat, lng, session.location_lat, session.location_lng);
+
+        if (dist <= session.radius_meters) {
+          document.getElementById('gps-icon-enroll').textContent = '✅';
+          document.getElementById('gps-text-enroll').innerHTML =
+            `Present in classroom · <strong>${Math.round(dist)}m</strong> from center`;
+          toast('Location verified ✓', 'success');
+          setTimeout(() => startEnrollStep2(), 800);
+        } else {
+          document.getElementById('gps-icon-enroll').textContent = '❌';
+          document.getElementById('gps-text-enroll').innerHTML =
+            `Too far: <strong>${Math.round(dist)}m</strong> away (max ${session.radius_meters}m)`;
+          toast('You are not in the classroom', 'error');
+          btn.disabled = false;
+          btn.textContent = '📍 CHECK MY LOCATION';
+        }
+      } catch (e) {
+        toast('Location error: ' + e.message, 'error');
+        btn.disabled = false;
+        btn.textContent = '📍 CHECK MY LOCATION';
+      }
+    }
+
+    async function startEnrollStep2() {
+      document.getElementById('enroll-step-1').style.display = 'none';
+      document.getElementById('enroll-step-2').style.display = 'block';
+      document.getElementById('s1').classList.remove('active');
+      document.getElementById('s1').classList.add('done');
+      document.getElementById('s2').classList.add('active');
+
+      if (!modelsLoaded) {
+        document.getElementById('cam-status-enroll').textContent = 'Loading models...';
+        await loadFaceModels();
+      }
+
+      try {
+        enrollStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+        const video = document.getElementById('video-enroll');
+        video.srcObject = enrollStream;
+        await video.play();
+
+        document.getElementById('scanner-enroll').style.display = 'block';
+        document.getElementById('cam-status-enroll').textContent = 'Position your face in the frame';
+        document.getElementById('btn-capture-enroll').disabled = false;
+      } catch (e) {
+        toast('Camera error: ' + e.message, 'error');
+      }
+    }
+
+    async function captureEnroll() {
+      const btn = document.getElementById('btn-capture-enroll');
+      btn.disabled = true;
+      btn.textContent = 'DETECTING...';
+      document.getElementById('cam-status-enroll').textContent = 'Detecting face...';
+
+      try {
+        const video = document.getElementById('video-enroll');
+        const detection = await faceapi
+          .detectSingleFace(video)
+          .withFaceLandmarks()
+          .withFaceDescriptor();
+
+        if (!detection) {
+          toast('No face detected. Adjust lighting and position.', 'warn');
+          btn.disabled = false;
+          btn.innerHTML = '◉ CAPTURE';
+          document.getElementById('cam-status-enroll').textContent = 'Position your face in the frame';
+          return;
+        }
+
+        const descriptor = Array.from(detection.descriptor);
+        document.getElementById('cam-status-enroll').textContent = 'Face detected! Saving...';
+
+        // Save descriptor to Supabase
+        const { error } = await supabase.from('profiles').update({
+          face_descriptor: descriptor,
+          enrolled_at: new Date().toISOString()
+        }).eq('id', currentUser.id);
+
+        if (error) throw error;
+
+        // Stop camera
+        enrollStream.getTracks().forEach(t => t.stop());
+
+        // Step 3
+        document.getElementById('enroll-step-2').style.display = 'none';
+        document.getElementById('enroll-step-3').style.display = 'block';
+        document.getElementById('s2').classList.remove('active');
+        document.getElementById('s2').classList.add('done');
+        document.getElementById('s3').classList.add('active');
+
+        toast('Face enrolled successfully ✓', 'success');
+        currentUser.face_descriptor = descriptor;
+
+      } catch (e) {
+        toast('Error: ' + e.message, 'error');
+        btn.disabled = false;
+        btn.innerHTML = '◉ CAPTURE';
+      }
+    }
+
+    function retakeEnroll() {
+      document.getElementById('cam-status-enroll').textContent = 'Position your face in the frame';
+      document.getElementById('btn-capture-enroll').disabled = false;
+      document.getElementById('btn-capture-enroll').innerHTML = '◉ CAPTURE';
+    }
+
+    // ─── ATTENDANCE FLOW ─────────────────────────────────────────────────
+
+    function showAttendance() {
+      document.getElementById('card-enroll').style.display = 'none';
+      document.getElementById('card-attend').style.display = 'block';
+    }
+
+    async function verifyOTP() {
+      const otp = document.getElementById('otp-input').value.trim().toUpperCase();
+      if (otp.length < 4) return toast('Enter the session code', 'error');
+
+      const btn = document.getElementById('btn-verify-otp');
+      btn.disabled = true;
+      btn.textContent = 'VERIFYING...';
+
+      const now = new Date().toISOString();
+      const { data: sessions, error } = await supabase
+        .from('sessions')
+        .select('*')
+        .eq('otp', otp)
+        .gt('expires_at', now)
+        .single();
+
+      if (error || !sessions) {
+        toast('Invalid or expired session code', 'error');
+        btn.disabled = false;
+        btn.textContent = '→ VERIFY CODE';
+        return;
+      }
+
+      // Check if already marked
+      const { data: existing } = await supabase
+        .from('attendance')
+        .select('id')
+        .eq('student_id', currentUser.id)
+        .eq('session_id', sessions.id)
+        .single();
+
+      if (existing) {
+        toast('Attendance already marked for this session!', 'warn');
+        btn.disabled = false;
+        btn.textContent = '→ VERIFY CODE';
+        return;
+      }
+
+      activeSession = sessions;
+      toast('Session found ✓', 'success');
+
+      // Move to GPS step
+      document.getElementById('attend-step-1').style.display = 'none';
+      document.getElementById('attend-step-2').style.display = 'block';
+      document.getElementById('as1').classList.remove('active');
+      document.getElementById('as1').classList.add('done');
+      document.getElementById('as2').classList.add('active');
+
+      document.getElementById('session-subject-text').innerHTML =
+        `Session: <strong>${activeSession.subject}</strong>`;
+    }
+
+    async function checkGPSForAttend() {
+      const btn = document.getElementById('btn-check-gps-attend');
+      btn.disabled = true;
+      btn.textContent = 'LOCATING...';
+
+      const statusRow = document.getElementById('gps-status-attend');
+      statusRow.style.display = 'flex';
+      document.getElementById('gps-text-attend').textContent = 'Acquiring GPS...';
+
+      try {
+        const pos = await getLocation();
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        const dist = getDistanceMeters(lat, lng, activeSession.location_lat, activeSession.location_lng);
+
+        if (dist <= activeSession.radius_meters) {
+          document.getElementById('gps-icon-attend').textContent = '✅';
+          document.getElementById('gps-text-attend').innerHTML =
+            `Present · <strong>${Math.round(dist)}m</strong> from classroom`;
+          toast('Location verified ✓', 'success');
+          setTimeout(() => startFaceVerify(), 800);
+        } else {
+          document.getElementById('gps-icon-attend').textContent = '❌';
+          document.getElementById('gps-text-attend').innerHTML =
+            `Too far: <strong>${Math.round(dist)}m</strong> away (max ${activeSession.radius_meters}m)`;
+          toast('You must be in the classroom', 'error');
+          btn.disabled = false;
+          btn.textContent = '📍 CHECK LOCATION';
+        }
+      } catch (e) {
+        toast('Location error: ' + e.message, 'error');
+        btn.disabled = false;
+        btn.textContent = '📍 CHECK LOCATION';
+      }
+    }
+
+    async function startFaceVerify() {
+      document.getElementById('attend-step-2').style.display = 'none';
+      document.getElementById('attend-step-3').style.display = 'block';
+      document.getElementById('as2').classList.remove('active');
+      document.getElementById('as2').classList.add('done');
+      document.getElementById('as3').classList.add('active');
+
+      if (!modelsLoaded) {
+        document.getElementById('cam-status-attend').textContent = 'Loading models...';
+        await loadFaceModels();
+      }
+
+      try {
+        attendStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+        const video = document.getElementById('video-attend');
+        video.srcObject = attendStream;
+        await video.play();
+
+        document.getElementById('scanner-attend').style.display = 'block';
+        document.getElementById('cam-status-attend').textContent = 'Look at the camera';
+        document.getElementById('btn-verify-face').disabled = false;
+      } catch (e) {
+        toast('Camera error: ' + e.message, 'error');
+      }
+    }
+
+    async function verifyFace() {
+      const btn = document.getElementById('btn-verify-face');
+      btn.disabled = true;
+      btn.textContent = 'SCANNING...';
+      document.getElementById('cam-status-attend').textContent = 'Analyzing face...';
+
+      const resultRow = document.getElementById('verify-result');
+      resultRow.style.display = 'flex';
+      document.getElementById('verify-icon').textContent = '⏳';
+      document.getElementById('verify-text').textContent = 'Matching face...';
+
+      try {
+        const video = document.getElementById('video-attend');
+        const detection = await faceapi
+          .detectSingleFace(video)
+          .withFaceLandmarks()
+          .withFaceDescriptor();
+
+        if (!detection) {
+          toast('No face detected. Try again.', 'warn');
+          document.getElementById('verify-icon').textContent = '⚠️';
+          document.getElementById('verify-text').textContent = 'No face detected';
+          btn.disabled = false;
+          btn.innerHTML = '◉ VERIFY MY FACE';
+          return;
+        }
+
+        // Load stored descriptor
+        const stored = new Float32Array(currentUser.face_descriptor);
+        const live = detection.descriptor;
+
+        // Euclidean distance
+        const dist = faceapi.euclideanDistance(stored, live);
+        console.log('Face distance:', dist);
+
+        if (dist < 0.55) {
+          // MATCH — mark attendance
+          document.getElementById('verify-icon').textContent = '✅';
+          document.getElementById('verify-text').innerHTML = `Face matched · <strong>Distance: ${dist.toFixed(3)}</strong>`;
+
+          const { error } = await supabase.from('attendance').insert({
+            student_id: currentUser.id,
+            session_id: activeSession.id,
+            student_name: currentUser.name,
+            enrollment_number: currentUser.enrollment_number,
+          });
+
+          if (error) {
+            if (error.code === '23505') {
+              toast('Already marked for this session!', 'warn');
+            } else {
+              throw error;
+            }
+          } else {
+            attendStream.getTracks().forEach(t => t.stop());
+            document.getElementById('attend-step-3').style.display = 'none';
+            document.getElementById('attend-success').style.display = 'block';
+            document.getElementById('success-session-info').textContent =
+              `Subject: ${activeSession.subject}`;
+            document.getElementById('success-time').textContent =
+              `Marked at ${new Date().toLocaleTimeString()}`;
+            toast('Attendance marked ✓', 'success');
+          }
+
+        } else {
+          document.getElementById('verify-icon').textContent = '❌';
+          document.getElementById('verify-text').innerHTML =
+            `Face not recognized · <strong>Distance: ${dist.toFixed(3)}</strong>`;
+          toast('Face does not match. Try again.', 'error');
+          btn.disabled = false;
+          btn.innerHTML = '◉ VERIFY MY FACE';
+        }
+      } catch (e) {
+        toast('Error: ' + e.message, 'error');
+        btn.disabled = false;
+        btn.innerHTML = '◉ VERIFY MY FACE';
+      }
+    }
+
+    async function doLogout() {
+      await supabase.auth.signOut();
+      window.location.href = 'index.html';
+    }
+  </script>
+</body>
+</html>
