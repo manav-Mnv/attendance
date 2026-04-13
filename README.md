@@ -68,6 +68,9 @@ You can run this project locally without any build tools:
 
 ---
 
+## Deployment
+Auto-deploy is connected to Vercel via the `Marquee_Attendance` branch.
+
 ## Notes
 - Face data stored as 128-number descriptor array (not raw photo)
 - OTP is 6 characters, alphanumeric, expires automatically
