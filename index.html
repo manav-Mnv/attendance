@@ -142,11 +142,20 @@
         return;
       }
 
+      // data.user can be null if email confirmation is required
+      if (!data.user) {
+        toast('Check your email to confirm your account, then login.', 'success');
+        setTimeout(() => switchTab('login'), 2000);
+        btn.disabled = false;
+        btn.innerHTML = '<span>✦</span> CREATE ACCOUNT';
+        return;
+      }
+
       // Create profile
       const { error: profileError } = await supabase.from('profiles').insert({
         id: data.user.id,
         name,
-        roll_number: roll,
+        enrollment_number: roll,
         role,
       });
 
