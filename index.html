@@ -6,59 +6,62 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" type="image/jpeg" href="swift.jpg">
   <title>Swift Coding Club — Attendance</title>
+
+  <!-- Umami: privacy-friendly analytics (page views, no personal data) -->
   <script defer src="https://cloud.umami.is/script.js" data-website-id="eab90aaa-53fa-4727-9812-37a360b0c885"></script>
+
+  <!-- Google Fonts: Inter — used for all text in the app -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
   <style>
+    /* ============================================================
+       CSS CUSTOM PROPERTIES (DESIGN TOKENS)
+       These variables define the entire color palette and spacing.
+       Changing one variable here updates it everywhere in the app.
+    ============================================================ */
     :root {
-      --bg: #000000;
-      --surface: rgba(28,28,30,0.85);
-      --surface2: rgba(44,44,46,0.7);
-      --surface3: rgba(58,58,60,0.5);
-      --border: rgba(255,255,255,0.08);
-      --border2: rgba(255,255,255,0.12);
-      --accent: #F05138;
-      --accent-dim: rgba(240,81,56,0.12);
-      --accent-glow: rgba(240,81,56,0.35);
-      --accent2: #FF6B52;
-      --success: #32D74B;
-      --error: #FF453A;
-      --warn: #FFD60A;
-      --blue: #0A84FF;
-      --text: #FFFFFF;
-      --text2: #EBEBF599;
-      --text3: #EBEBF54D;
-      --muted: rgba(235,235,245,0.18);
-      --radius: 16px;
-      --radius-sm: 10px;
-      --radius-pill: 999px;
-      --blur: blur(24px) saturate(1.8);
+      --bg: #000000;                        /* Page background */
+      --surface: rgba(28,28,30,0.85);       /* Card/panel background */
+      --surface2: rgba(44,44,46,0.7);       /* Secondary surface */
+      --surface3: rgba(58,58,60,0.5);       /* Tertiary surface (hover states) */
+      --border: rgba(255,255,255,0.08);     /* Subtle border */
+      --border2: rgba(255,255,255,0.12);    /* Slightly more visible border */
+      --accent: #F05138;                    /* Swift orange — primary brand color */
+      --accent-dim: rgba(240,81,56,0.12);   /* Accent at low opacity */
+      --accent-glow: rgba(240,81,56,0.35);  /* Accent glow for shadows */
+      --accent2: #FF6B52;                   /* Lighter accent for gradients */
+      --success: #32D74B;                   /* Green — attendance marked successfully */
+      --error: #FF453A;                     /* Red — face not recognised / blocked */
+      --warn: #FFD60A;                      /* Yellow — already marked / warnings */
+      --blue: #0A84FF;                      /* Blue — informational */
+      --text: #FFFFFF;                      /* Primary text */
+      --text2: #EBEBF599;                   /* Secondary text (60% opacity white) */
+      --text3: #EBEBF54D;                   /* Tertiary text (30% opacity white) */
+      --muted: rgba(235,235,245,0.18);      /* Muted text */
+      --radius: 16px;                       /* Default border radius */
+      --radius-sm: 10px;                    /* Small border radius */
+      --radius-pill: 999px;                 /* Pill shape (fully rounded) */
+      --blur: blur(24px) saturate(1.8);     /* Glass morphism blur effect */
       --font: 'Inter', -apple-system, 'SF Pro Display', sans-serif;
       --font-display: 'Inter', sans-serif;
-      --font-mono: 'SF Mono', 'Fira Code', monospace;
+      --font-mono: 'SF Mono', 'Fira Code', monospace; /* Used for enrollment numbers */
       --font-body: 'Inter', sans-serif;
     }
 
-    *,
-    *::before,
-    *::after {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    /* Reset: remove default browser margin/padding on all elements */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
-    html,
-    body {
-      height: 100%;
-    }
+    html, body { height: 100%; }
 
     body {
       background: var(--bg);
       color: var(--text);
       font-family: var(--font);
-      -webkit-font-smoothing: antialiased;
-      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased; /* Smoother fonts on macOS/iOS */
+      overflow-x: hidden;                  /* Prevent horizontal scroll */
     }
 
+    /* Decorative radial glow at the top of the page */
     body::before {
       content: '';
       position: fixed;
@@ -66,10 +69,11 @@
       top: -200px; left: 50%;
       transform: translateX(-50%);
       background: radial-gradient(circle, rgba(240,81,56,0.08) 0%, transparent 70%);
-      pointer-events: none;
+      pointer-events: none; /* Does not block clicks */
       z-index: 0;
     }
 
+    /* Additional subtle corner glows */
     body::after {
       content: '';
       position: fixed;
@@ -81,13 +85,13 @@
       z-index: 0;
     }
 
-    #app {
-      position: relative;
-      z-index: 1;
-      min-height: 100vh;
-    }
+    /* Main app wrapper — sits above the decorative background layers */
+    #app { position: relative; z-index: 1; min-height: 100vh; }
 
-    /* ─── GLASS ─── */
+    /* ── GLASS MORPHISM EFFECT ──
+       Creates the frosted-glass card look.
+       backdrop-filter blurs content BEHIND the element.
+       Both prefixed (-webkit-) and standard are needed for Safari/Chrome. */
     .glass {
       background: var(--surface);
       backdrop-filter: var(--blur);
@@ -101,15 +105,18 @@
       border: 1px solid var(--border);
     }
 
-    /* ─── BUTTONS ─── */
+    /* ── BUTTONS ──
+       Base .btn class — shared styles for all buttons.
+       Specific variants (.btn-primary, .btn-ghost) add color. */
     .btn {
       font-family: var(--font);
       font-size: 15px;
       font-weight: 600;
       padding: 13px 26px;
-      border-radius: var(--radius-pill);
+      border-radius: var(--radius-pill);  /* Fully rounded pill shape */
       border: none;
       cursor: pointer;
+      /* Spring-like cubic-bezier gives a satisfying "bounce" on hover */
       transition: all .2s cubic-bezier(.34,1.56,.64,1);
       letter-spacing: -0.01em;
       display: inline-flex;
@@ -118,46 +125,32 @@
       gap: 8px;
     }
 
+    /* Orange gradient — used for primary actions like "Enroll", "Mark Attendance" */
     .btn-primary {
       background: linear-gradient(135deg, var(--accent), #FF6B52);
       color: #fff;
       box-shadow: 0 4px 20px rgba(240,81,56,0.3);
     }
-    .btn-primary:hover {
-      transform: translateY(-2px) scale(1.02);
-      box-shadow: 0 8px 30px rgba(240,81,56,0.45);
-    }
-    .btn-primary:active { transform: scale(0.98); }
+    .btn-primary:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 8px 30px rgba(240,81,56,0.45); }
+    .btn-primary:active { transform: scale(0.98); }               /* Press-down feel */
     .btn-primary:disabled { opacity:.4; cursor:not-allowed; transform:none; box-shadow:none; }
 
-    .btn-ghost {
-      background: var(--surface2);
-      color: var(--text);
-      border: 1px solid var(--border2);
-    }
+    /* Ghost button — transparent background, subtle border */
+    .btn-ghost { background: var(--surface2); color: var(--text); border: 1px solid var(--border2); }
     .btn-ghost:hover { background: var(--surface3); border-color: var(--border2); }
 
-    .btn-danger {
-      background: rgba(255,69,58,0.15);
-      color: var(--error);
-      border: 1px solid rgba(255,69,58,0.3);
-    }
+    /* Danger button — red tint, used for destructive actions like Delete */
+    .btn-danger { background: rgba(255,69,58,0.15); color: var(--error); border: 1px solid rgba(255,69,58,0.3); }
     .btn-danger:hover { background: rgba(255,69,58,0.25); }
 
+    /* Size variants */
     .btn-sm { padding: 8px 18px; font-size: 13px; }
     .btn-xs { padding: 5px 13px; font-size: 12px; }
 
-    /* ─── INPUTS ─── */
+    /* ── FORM FIELDS ──
+       .field wraps a label + input pair together. */
     .field { display:flex; flex-direction:column; gap:7px; }
-
-    .field label {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--text2);
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-    }
-
+    .field label { font-size: 12px; font-weight: 600; color: var(--text2); letter-spacing: 0.04em; text-transform: uppercase; }
     .field input, .field select, .field textarea {
       background: rgba(255,255,255,0.06);
       border: 1px solid var(--border2);
@@ -169,6 +162,7 @@
       transition: all .2s;
       width: 100%;
     }
+    /* Focus ring matches brand color */
     .field input:focus, .field select:focus {
       outline: none;
       border-color: var(--accent);
@@ -176,243 +170,84 @@
       box-shadow: 0 0 0 3px rgba(240,81,56,0.12);
     }
     .field input::placeholder { color: var(--text3); }
-    .field select option { background: #1c1c1e; color:#fff; }
+    .field select option { background: #1c1c1e; color:#fff; } /* Dark option dropdown */
 
-    /* ─── SETUP PAGE ─── */
-    #page-setup {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      padding: 40px 20px;
-    }
+    /* ── SETUP PAGE ── Shown only on first-ever load when no DB is connected */
+    #page-setup { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 40px 20px; }
+    .setup-card { border-radius: 24px; padding: 52px; width: 100%; max-width: 600px; }
 
-    .setup-card {
-      border-radius: 24px;
-      padding: 52px;
-      width: 100%;
-      max-width: 600px;
-    }
-
-    .swift-logo {
-      display: flex; align-items: center; gap: 12px;
-      margin-bottom: 8px;
-    }
-    .swift-logo-icon {
-      width: 48px; height: 48px;
-      border-radius: 12px;
-      overflow: hidden;
-      flex-shrink: 0;
-      box-shadow: 0 4px 20px rgba(240,81,56,0.4);
-    }
-    .swift-logo-icon img {
-      width: 100%; height: 100%; object-fit: cover; display: block;
-    }
-    .swift-logo-text {
-      font-size: 26px; font-weight: 800; letter-spacing: -0.03em;
-      background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.7) 100%);
-      -webkit-background-clip: text;
-      background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    .swift-logo-text span {
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      -webkit-background-clip: text;
-      background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
+    .swift-logo { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+    .swift-logo-icon { width: 48px; height: 48px; border-radius: 12px; overflow: hidden; flex-shrink: 0; box-shadow: 0 4px 20px rgba(240,81,56,0.4); }
+    .swift-logo-icon img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .swift-logo-text { font-size: 26px; font-weight: 800; letter-spacing: -0.03em; background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.7) 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .swift-logo-text span { background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
 
     .setup-sub { font-size:14px; color:var(--text2); margin-bottom:36px; }
     .steps { display:flex; flex-direction:column; gap:28px; }
     .step { display:flex; gap:16px; }
-
-    .step-num {
-      font-size:12px; font-weight:700; color:#000;
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      width:28px; height:28px; border-radius:50%;
-      display:flex; align-items:center; justify-content:center;
-      flex-shrink:0; margin-top:2px;
-      box-shadow: 0 3px 12px rgba(240,81,56,0.4);
-    }
-
+    .step-num { font-size:12px; font-weight:700; color:#000; background: linear-gradient(135deg, var(--accent), var(--accent2)); width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px; box-shadow: 0 3px 12px rgba(240,81,56,0.4); }
     .step-body { flex:1; }
     .step-title { font-size:15px; font-weight:700; margin-bottom:8px; }
     .step-desc { font-size:13px; color:var(--text2); line-height:1.65; margin-bottom:12px; }
 
-    .sql-box {
-      background: rgba(0,0,0,0.6);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 18px;
-      font-family: var(--font-mono);
-      font-size: 11.5px;
-      color: #64D2FF;
-      white-space: pre;
-      overflow-x: auto;
-      position: relative;
-    }
-
-    .copy-btn {
-      position:absolute; top:10px; right:10px;
-      background: rgba(255,255,255,0.1);
-      border:1px solid var(--border2);
-      border-radius:8px;
-      color:var(--text2);
-      font-family:var(--font);
-      font-size:11px; font-weight:600;
-      padding:5px 12px;
-      cursor:pointer;
-    }
+    /* SQL code block shown in setup instructions */
+    .sql-box { background: rgba(0,0,0,0.6); border: 1px solid var(--border); border-radius: 12px; padding: 18px; font-family: var(--font-mono); font-size: 11.5px; color: #64D2FF; white-space: pre; overflow-x: auto; position: relative; }
+    .copy-btn { position:absolute; top:10px; right:10px; background: rgba(255,255,255,0.1); border:1px solid var(--border2); border-radius:8px; color:var(--text2); font-family:var(--font); font-size:11px; font-weight:600; padding:5px 12px; cursor:pointer; }
     .copy-btn:hover { background:rgba(255,255,255,0.15); color:#fff; }
-
     .step-fields { display:flex; flex-direction:column; gap:14px; }
     #setup-error { color:var(--error); font-size:13px; display:none; }
     #setup-success { color:var(--success); font-size:13px; display:none; }
 
-    /* ─── KIOSK PAGE ─── */
-    #page-kiosk {
-      display: none;
-      flex-direction: column;
-      min-height: 100vh;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
+    /* ── KIOSK PAGE ── The main full-screen attendance scanner */
+    #page-kiosk { display: none; flex-direction: column; min-height: 100vh; align-items: center; justify-content: center; padding: 20px; }
 
-    .kiosk-header {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 18px 32px;
-      border-bottom: 1px solid var(--border);
-      background: rgba(7, 11, 18, .9);
-      backdrop-filter: blur(10px);
-      z-index: 10;
-    }
-
-    .kiosk-title {
-      font-family: var(--font-display);
-      font-size: 18px;
-      font-weight: 900;
-      color: var(--accent);
-      letter-spacing: .1em;
-      text-shadow: none;
-    }
-
-    .kiosk-title {
-      font-size:17px; font-weight:800;
-      letter-spacing:-0.03em;
-      display:flex; align-items:center; gap:10px;
-    }
-    .kiosk-title-icon {
-      width:32px; height:32px;
-      border-radius:8px; overflow:hidden;
-      flex-shrink:0;
-      box-shadow:0 3px 10px rgba(240,81,56,0.35);
-    }
+    /* Sticky top bar: logo, clock, model status, admin button */
+    .kiosk-header { position: fixed; top: 0; left: 0; right: 0; display: flex; align-items: center; justify-content: space-between; padding: 18px 32px; border-bottom: 1px solid var(--border); background: rgba(7, 11, 18, .9); backdrop-filter: blur(10px); z-index: 10; }
+    .kiosk-title { font-size:17px; font-weight:800; letter-spacing:-0.03em; display:flex; align-items:center; gap:10px; }
+    .kiosk-title-icon { width:32px; height:32px; border-radius:8px; overflow:hidden; flex-shrink:0; box-shadow:0 3px 10px rgba(240,81,56,0.35); }
     .kiosk-title-icon img { width:100%; height:100%; object-fit:cover; display:block; }
-
-    .kiosk-clock {
-      font-size:20px; font-weight:700;
-      letter-spacing:-0.02em;
-      color:var(--text);
-      font-variant-numeric:tabular-nums;
-    }
-
-    .kiosk-admin-btn {
-      background:rgba(255,255,255,0.08);
-      border:1px solid var(--border2);
-      color:var(--text2);
-      font-family:var(--font);
-      font-size:13px; font-weight:600;
-      padding:8px 18px;
-      border-radius:var(--radius-pill);
-      cursor:pointer;
-      transition:all .2s;
-    }
+    .kiosk-clock { font-size:20px; font-weight:700; letter-spacing:-0.02em; color:var(--text); font-variant-numeric:tabular-nums; /* Keeps digits same width so clock doesn't jump */ }
+    .kiosk-admin-btn { background:rgba(255,255,255,0.08); border:1px solid var(--border2); color:var(--text2); font-family:var(--font); font-size:13px; font-weight:600; padding:8px 18px; border-radius:var(--radius-pill); cursor:pointer; transition:all .2s; }
     .kiosk-admin-btn:hover { background:rgba(255,255,255,0.13); color:var(--text); }
 
-    .kiosk-body {
-      display:flex; flex-direction:column; align-items:center;
-      gap:28px; padding-top:90px; padding-bottom:80px;
-    }
+    /* Kiosk body: centered column holding prompt, camera, status */
+    .kiosk-body { display:flex; flex-direction:column; align-items:center; gap:28px; padding-top:90px; padding-bottom:80px; }
+    .kiosk-prompt { font-size:13px; font-weight:500; color:var(--text2); letter-spacing:0.01em; text-align:center; }
 
-    .kiosk-prompt {
-      font-size:13px; font-weight:500;
-      color:var(--text2);
-      letter-spacing:0.01em;
-      text-align:center;
-    }
-
-    /* ─── CAMERA — Rounded Square iOS Style ─── */
+    /* ── CAMERA VIEWFINDER ──
+       Square frame with animated corner brackets (iOS-style)
+       and a scanning sweep animation to feel like it's actively working. */
     .camera-wrap { position:relative; width:320px; height:320px; }
-
-    .corner {
-      position:absolute; width:36px; height:36px;
-      border-color: var(--accent); border-style:solid;
-      transition: all .3s;
-    }
+    .corner { position:absolute; width:36px; height:36px; border-color: var(--accent); border-style:solid; transition: all .3s; }
     .corner-tl { top:-4px; left:-4px; border-width:3px 0 0 3px; border-radius:6px 0 0 0; }
     .corner-tr { top:-4px; right:-4px; border-width:3px 3px 0 0; border-radius:0 6px 0 0; }
     .corner-bl { bottom:-4px; left:-4px; border-width:0 0 3px 3px; border-radius:0 0 0 6px; }
     .corner-br { bottom:-4px; right:-4px; border-width:0 3px 3px 0; border-radius:0 0 6px 0; }
+    /* Corner brackets slowly pulse in opacity and color */
     .corner-pulse { animation: cornerPulse 2s ease-in-out infinite; }
+    @keyframes cornerPulse { 0%,100% { opacity:1; border-color: var(--accent); } 50% { opacity:0.5; border-color: var(--accent2); } }
 
-    @keyframes cornerPulse {
-      0%,100% { opacity:1; border-color: var(--accent); }
-      50% { opacity:0.5; border-color: var(--accent2); }
-    }
+    /* Subtle glow around the camera square */
+    .camera-glow { position:absolute; inset:-16px; border-radius:30px; background:transparent; box-shadow:0 0 60px rgba(240,81,56,0.12), 0 0 120px rgba(240,81,56,0.06); pointer-events:none; }
 
-    .camera-glow {
-      position:absolute; inset:-16px; border-radius:30px;
-      background:transparent;
-      box-shadow:0 0 60px rgba(240,81,56,0.12), 0 0 120px rgba(240,81,56,0.06);
-      pointer-events:none;
-    }
+    /* The actual camera video container */
+    .camera-square { width:320px; height:320px; border-radius:24px; overflow:hidden; background:#000; position:relative; border:1px solid var(--border2); }
+    #kiosk-video { width:100%; height:100%; object-fit:cover; transform:scaleX(-1); /* Mirror like a selfie camera */ }
 
-    .camera-square {
-      width:320px; height:320px; border-radius:24px;
-      overflow:hidden; background:#000; position:relative;
-      border:1px solid var(--border2);
-    }
+    /* Red scan line that sweeps top-to-bottom to feel like active scanning */
+    .scan-sweep { position:absolute; left:0; right:0; height:80px; background: linear-gradient(to bottom, transparent, rgba(240,81,56,0.06), rgba(240,81,56,0.12), rgba(240,81,56,0.06), transparent); animation:scanSweep 2.8s ease-in-out infinite; top:0; }
+    @keyframes scanSweep { 0% { top:-80px; opacity:0; } 10% { opacity:1; } 90% { opacity:1; } 100% { top:100%; opacity:0; } }
 
-    #kiosk-video {
-      width:100%; height:100%;
-      object-fit:cover; transform:scaleX(-1);
-    }
-
-    .scan-sweep {
-      position:absolute; left:0; right:0; height:80px;
-      background: linear-gradient(to bottom, transparent, rgba(240,81,56,0.06), rgba(240,81,56,0.12), rgba(240,81,56,0.06), transparent);
-      animation:scanSweep 2.8s ease-in-out infinite; top:0;
-    }
-    @keyframes scanSweep {
-      0% { top:-80px; opacity:0; } 10% { opacity:1; }
-      90% { opacity:1; } 100% { top:100%; opacity:0; }
-    }
-
-    .camera-success-flash {
-      position:absolute; inset:0; background:rgba(50,215,75,0.15);
-      border-radius:24px; opacity:0; pointer-events:none; transition:opacity .15s;
-    }
+    /* Green flash overlay when attendance is successfully marked */
+    .camera-success-flash { position:absolute; inset:0; background:rgba(50,215,75,0.15); border-radius:24px; opacity:0; pointer-events:none; transition:opacity .15s; }
     .camera-success-flash.active { opacity:1; }
 
-    /* Kiosk status */
+    /* ── STATUS PILL ──
+       Shown below the camera to tell the user what's happening.
+       Different variants (.scanning, .success, .error, .warn) change the color. */
     .kiosk-status { text-align:center; display:flex; flex-direction:column; gap:6px; align-items:center; }
-
-    .status-pill {
-      display:inline-flex; align-items:center; gap:8px;
-      font-size:13px; font-weight:600;
-      padding:8px 16px; border-radius:var(--radius-pill);
-      background:rgba(255,255,255,0.06); border:1px solid var(--border2);
-      letter-spacing:0.01em; transition:all .3s;
-    }
+    .status-pill { display:inline-flex; align-items:center; gap:8px; font-size:13px; font-weight:600; padding:8px 16px; border-radius:var(--radius-pill); background:rgba(255,255,255,0.06); border:1px solid var(--border2); letter-spacing:0.01em; transition:all .3s; }
     .status-dot { width:6px; height:6px; border-radius:50%; background:var(--text2); }
-
     .status-pill.scanning { background:rgba(240,81,56,0.1); border-color:rgba(240,81,56,0.3); color:var(--accent); }
     .status-pill.scanning .status-dot { background:var(--accent); animation:dotBlink .8s infinite; }
     .status-pill.success { background:rgba(50,215,75,0.1); border-color:rgba(50,215,75,0.3); color:var(--success); }
@@ -421,106 +256,44 @@
     .status-pill.error .status-dot { background:var(--error); }
     .status-pill.warn { background:rgba(255,214,10,0.1); border-color:rgba(255,214,10,0.3); color:var(--warn); }
     .status-pill.warn .status-dot { background:var(--warn); }
-
     @keyframes dotBlink { 0%,100%{opacity:1} 50%{opacity:.3} }
 
-    .kiosk-result-card {
-      background:rgba(28,28,30,0.9);
-      backdrop-filter:var(--blur); -webkit-backdrop-filter:var(--blur);
-      border:1px solid rgba(50,215,75,0.3);
-      border-radius:20px; padding:22px 36px;
-      text-align:center; box-shadow:0 8px 40px rgba(50,215,75,0.1);
-      min-width:300px; display:none;
-      animation:cardPop .35s cubic-bezier(.34,1.56,.64,1);
-    }
-    @keyframes cardPop {
-      from { transform:scale(0.85) translateY(10px); opacity:0; }
-      to { transform:scale(1) translateY(0); opacity:1; }
-    }
+    /* ── RESULT CARD ──
+       Pops up below the status pill after recognition.
+       Shows the student's name and timestamp. */
+    .kiosk-result-card { background:rgba(28,28,30,0.9); backdrop-filter:var(--blur); -webkit-backdrop-filter:var(--blur); border:1px solid rgba(50,215,75,0.3); border-radius:20px; padding:22px 36px; text-align:center; box-shadow:0 8px 40px rgba(50,215,75,0.1); min-width:300px; display:none; animation:cardPop .35s cubic-bezier(.34,1.56,.64,1); }
+    @keyframes cardPop { from { transform:scale(0.85) translateY(10px); opacity:0; } to { transform:scale(1) translateY(0); opacity:1; } }
     .kiosk-result-card.show { display:block; }
     .kiosk-result-card.warn-state { border-color:rgba(255,214,10,0.3); box-shadow:0 8px 30px rgba(255,214,10,0.08); }
     .kiosk-result-name { font-size:22px; font-weight:800; letter-spacing:-0.03em; color:var(--success); margin-bottom:6px; }
     .kiosk-result-card.warn-state .kiosk-result-name { color:var(--warn); }
     .kiosk-result-detail { font-size:13px; color:var(--text2); font-weight:500; }
 
-    /* Loading overlay */
-    .loading-overlay {
-      position: fixed; inset: 0; background: var(--bg);
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center; gap: 20px; z-index: 100;
-    }
+    /* Loading overlay shown while AI models download from CDN */
+    .loading-overlay { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; z-index: 100; }
     .loading-title { font-size:24px; font-weight:800; color:var(--accent); letter-spacing:-0.03em; }
     .loading-sub { font-size:13px; color:var(--text2); font-weight:500; }
     .loading-bar { width:240px; height:3px; background:var(--border); border-radius:3px; overflow:hidden; }
-    .loading-bar-fill {
-      height:100%; background:linear-gradient(90deg,var(--accent),var(--accent2));
-      width:0%; transition:width .5s; box-shadow:0 0 12px var(--accent-glow);
-    }
+    .loading-bar-fill { height:100%; background:linear-gradient(90deg,var(--accent),var(--accent2)); width:0%; transition:width .5s; box-shadow:0 0 12px var(--accent-glow); }
 
-    /* ─── ADMIN LOGIN ─── */
-    #page-admin-login {
-      display: none; align-items: center; justify-content: center; min-height: 100vh;
-    }
-
-    .admin-login-card {
-      border-radius:28px; padding:52px;
-      width:100%; max-width:440px; text-align:center;
-    }
+    /* Admin login page */
+    #page-admin-login { display: none; align-items: center; justify-content: center; min-height: 100vh; }
+    .admin-login-card { border-radius:28px; padding:52px; width:100%; max-width:440px; text-align:center; }
     .admin-login-icon { font-size:48px; margin-bottom:18px; }
-    .admin-login-title {
-      font-size:22px; font-weight:800;
-      letter-spacing:-0.03em; margin-bottom:6px;
-    }
+    .admin-login-title { font-size:22px; font-weight:800; letter-spacing:-0.03em; margin-bottom:6px; }
+    .admin-login-sub { font-size: 13px; color: var(--text2); margin-bottom: 28px; }
+    .admin-login-fields { display: flex; flex-direction: column; gap: 16px; }
+    #admin-login-error { color: var(--error); font-size: 13px; font-family: var(--font-mono); display: none; margin-top: 8px; }
 
-    .admin-login-sub {
-      font-size: 13px;
-      color: var(--text2);
-      margin-bottom: 28px;
-    }
-
-    .admin-login-fields {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    #admin-login-error {
-      color: var(--error);
-      font-size: 13px;
-      font-family: var(--font-mono);
-      display: none;
-      margin-top: 8px;
-    }
-
-    /* ─── ADMIN PANEL ─── */
-    #page-admin {
-      display: none;
-      flex-direction: column;
-      min-height: 100vh;
-    }
-
-    .admin-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 16px 32px;
-      border-bottom: 1px solid var(--border);
-      background: rgba(0,0,0,0.8);
-      backdrop-filter: blur(20px) saturate(1.8);
-      -webkit-backdrop-filter: blur(20px) saturate(1.8);
-      position: sticky; top: 0; z-index: 10;
-    }
+    /* Admin panel page */
+    #page-admin { display: none; flex-direction: column; min-height: 100vh; }
+    .admin-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 32px; border-bottom: 1px solid var(--border); background: rgba(0,0,0,0.8); backdrop-filter: blur(20px) saturate(1.8); -webkit-backdrop-filter: blur(20px) saturate(1.8); position: sticky; top: 0; z-index: 10; }
     .admin-header-left { display:flex; align-items:center; gap:20px; }
     .admin-logo { display:flex; align-items:center; gap:10px; font-size:16px; font-weight:800; letter-spacing:-0.03em; }
     .admin-logo-icon { width:30px; height:30px; border-radius:8px; overflow:hidden; flex-shrink:0; box-shadow:0 2px 8px rgba(240,81,56,0.35); }
     .admin-logo-icon img { width:100%; height:100%; object-fit:cover; display:block; }
     .admin-tabs { display:flex; gap:4px; background:rgba(255,255,255,0.05); border-radius:12px; padding:4px; }
-    .tab-btn {
-      font-family:var(--font); font-size:13px; font-weight:600;
-      padding:8px 18px; border-radius:10px; border:none;
-      cursor:pointer; background:transparent; color:var(--text2); transition:all .2s;
-      display:flex; align-items:center; gap:6px;
-    }
+    .tab-btn { font-family:var(--font); font-size:13px; font-weight:600; padding:8px 18px; border-radius:10px; border:none; cursor:pointer; background:transparent; color:var(--text2); transition:all .2s; display:flex; align-items:center; gap:6px; }
     .tab-btn:hover { color:var(--text); }
     .tab-btn.active { background:rgba(255,255,255,0.1); color:var(--text); }
 
@@ -528,11 +301,7 @@
     .enroll-grid { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
     @media(max-width:768px) { .enroll-grid { grid-template-columns:1fr; } }
     .panel { border-radius:20px; padding:24px; }
-    .panel-title {
-      font-size:12px; font-weight:700; color:var(--text2);
-      letter-spacing:0.05em; text-transform:uppercase;
-      margin-bottom:18px; display:flex; align-items:center; gap:8px;
-    }
+    .panel-title { font-size:12px; font-weight:700; color:var(--text2); letter-spacing:0.05em; text-transform:uppercase; margin-bottom:18px; display:flex; align-items:center; gap:8px; }
     .panel-title-bar { width:3px; height:14px; background:linear-gradient(to bottom,var(--accent),var(--accent2)); border-radius:2px; }
 
     #enroll-video-wrap { position:relative; border-radius:14px; overflow:hidden; background:#000; aspect-ratio:4/3; margin-bottom:16px; }
@@ -562,188 +331,126 @@
     .badge { font-size:11px; font-weight:700; padding:3px 10px; border-radius:var(--radius-pill); background:rgba(240,81,56,0.12); color:var(--accent); }
     .empty-state { text-align:center; padding:60px; color:var(--text2); font-size:14px; font-weight:500; }
     .students-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(280px,1fr)); gap:16px; }
-    .student-card {
-      background: rgba(255,255,255,0.04);
-      border: 1px solid var(--border2);
-      border-radius: 18px; padding: 24px; position: relative;
-      transition: all .2s;
-    }
-    .student-card:hover { 
-      transform: translateY(-4px); 
-      box-shadow: 0 12px 40px rgba(0,0,0,0.5); 
-      border-color: rgba(255,255,255,0.15);
-      background: rgba(255,255,255,0.06);
-    }
-    .student-card-avatar { width:44px; height:44px; border-radius:12px; background:linear-gradient(135deg,var(--accent),var(--accent2)); display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:800; color:#fff; margin-bottom:14px; }
+    .student-card { background: rgba(255,255,255,0.04); border: 1px solid var(--border2); border-radius: 18px; padding: 24px; position: relative; transition: all .2s; }
+    .student-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.15); background: rgba(255,255,255,0.06); }
     .student-card-name { font-size:16px; font-weight:700; margin-bottom:4px; letter-spacing:-0.02em; }
     .student-card-enrollment { font-size:12px; font-weight:700; color:var(--accent); margin-bottom:10px; letter-spacing:0.01em; }
     .student-card-details { font-size:13px; color:var(--text2); line-height:1.8; font-weight:500; }
     .student-card-delete { position:absolute; top:14px; right:14px; background:transparent; border:1px solid rgba(255,69,58,0.2); border-radius:8px; color:var(--error); font-size:12px; font-weight:600; padding:5px 12px; cursor:pointer; transition:all .2s; }
     .student-card-delete:hover { background:rgba(255,69,58,.12); border-color:rgba(255,69,58,.4); }
 
+    /* Utility: hides any element completely */
     .hidden { display:none !important; }
+
+    /* Spinning loading indicator used in tables while data loads */
     .spinner { display:inline-block; width:18px; height:18px; border:2px solid var(--border2); border-top-color:var(--accent); border-radius:50%; animation:spin .7s linear infinite; }
     @keyframes spin { to { transform:rotate(360deg); } }
+
     .page { display:flex; }
+
+    /* Recent chips at the bottom of kiosk showing who was marked today */
     .kiosk-recent { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); display:flex; gap:8px; flex-wrap:wrap; justify-content:center; max-width:600px; }
     .recent-chip { font-size:12px; font-weight:600; padding:6px 14px; border-radius:var(--radius-pill); background:rgba(50,215,75,0.08); border:1px solid rgba(50,215,75,0.2); color:var(--success); }
+
+    /* AI model loading status badge in the kiosk header */
     .model-tag { font-size:12px; font-weight:600; padding:6px 14px; border-radius:var(--radius-pill); display:flex; align-items:center; gap:6px; }
     .model-tag.loading { color:var(--warn); background:rgba(255,214,10,0.08); border:1px solid rgba(255,214,10,0.2); }
     .model-tag.ready { color:var(--success); background:rgba(50,215,75,0.08); border:1px solid rgba(50,215,75,0.2); }
+
+    /* Blinking dot indicator */
     .dot-blink { width:6px; height:6px; border-radius:50%; background:currentColor; animation:dotBlink .8s infinite; }
+
+    /* Notification flash at top of screen after attendance is marked */
     .sound-flash { position:fixed; top:80px; left:50%; transform:translateX(-50%); background:rgba(50,215,75,0.15); border:1px solid rgba(50,215,75,0.3); border-radius:var(--radius-pill); padding:8px 20px; font-size:13px; font-weight:600; color:var(--success); opacity:0; transition:opacity .3s; pointer-events:none; z-index:50; }
     .sound-flash.show { opacity:1; }
+
     a { color:var(--accent); text-decoration:none; }
     a:hover { text-decoration:underline; }
 
-    /* ════════════════════════════════════════
-       RESPONSIVE — Tablet & Mobile
-    ════════════════════════════════════════ */
+    /* ── RESPONSIVE STYLES ──
+       Media queries ensure the app works on phones and tablets. */
+    @media (max-width: 900px) { .admin-content { padding: 20px 16px; } .enroll-grid { grid-template-columns: 1fr; } .students-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); } }
 
-    /* ── Tablet  (≤ 900px) ── */
-    @media (max-width: 900px) {
-      .admin-content { padding: 20px 16px; }
-      .enroll-grid { grid-template-columns: 1fr; }
-      .students-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
-    }
-
-    /* ── Phablet / large phone (≤ 768px) ── */
     @media (max-width: 768px) {
-
-      /* Setup */
       .setup-card { padding: 28px 20px; border-radius: 18px; }
       .swift-logo-text { font-size: 20px; }
       .sql-box { font-size: 10px; padding: 14px 12px; }
-
-      /* Kiosk header */
       .kiosk-header { padding: 12px 16px; flex-wrap: wrap; gap: 8px; }
       .kiosk-title { font-size: 14px; }
       .kiosk-title-icon { width: 26px; height: 26px; }
       .kiosk-clock { font-size: 15px; }
       .kiosk-admin-btn { font-size: 12px; padding: 6px 13px; }
       #model-status { font-size: 11px; padding: 5px 10px; }
-
-      /* Kiosk body — scale camera to viewport */
       .kiosk-body { padding-top: 76px; padding-bottom: 60px; gap: 18px; }
       .camera-wrap { width: min(80vw, 280px); height: min(80vw, 280px); }
       .camera-square { width: min(80vw, 280px); height: min(80vw, 280px); }
       .kiosk-result-card { min-width: unset; width: 90vw; padding: 18px 20px; }
       .kiosk-result-name { font-size: 18px; }
       .kiosk-recent { max-width: 92vw; bottom: 12px; }
-
-      /* Admin header — stack logo + tabs vertically */
-      .admin-header {
-        flex-direction: column;
-        align-items: stretch;
-        padding: 12px 14px;
-        gap: 10px;
-      }
+      .admin-header { flex-direction: column; align-items: stretch; padding: 12px 14px; gap: 10px; }
       .admin-header-left { flex-direction: column; gap: 10px; }
       .admin-logo { font-size: 14px; }
       .admin-tabs { overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; }
       .tab-btn { font-size: 12px; padding: 7px 13px; }
       .admin-content { padding: 16px 12px; }
       .panel { padding: 16px 14px; }
-
-      /* Admin login */
       .admin-login-card { padding: 32px 22px; border-radius: 20px; }
       .admin-login-title { font-size: 18px; }
-
-      /* Logs toolbar — wrap nicely */
       .logs-toolbar { flex-direction: column; align-items: stretch; }
       .logs-toolbar .btn { width: 100%; }
       .toolbar-input { width: 100%; }
-
-      /* Table — horizontal scroll already on .data-table-wrap */
       th, td { padding: 10px 12px; font-size: 12px; }
-
-      /* Enroll grid */
       .enroll-grid { grid-template-columns: 1fr; }
       .form-grid { grid-template-columns: 1fr; }
       .form-grid .full { grid-column: auto; }
-
-      /* Students grid */
       .students-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
       .student-card { padding: 16px; }
-
-      /* Buttons */
       .btn { font-size: 14px; padding: 12px 22px; }
       .btn-sm { padding: 9px 16px; font-size: 12px; }
     }
 
-    /* ── Small phone (≤ 480px) ── */
     @media (max-width: 480px) {
       .setup-card { padding: 22px 14px; }
       .step { gap: 10px; }
       .step-title { font-size: 14px; }
       .step-desc { font-size: 12px; }
-
-      /* Kiosk camera fills most of screen */
       .camera-wrap { width: 88vw; height: 88vw; }
       .camera-square { width: 88vw; height: 88vw; }
-
       .kiosk-body { padding-top: 70px; gap: 14px; }
       .kiosk-prompt { font-size: 12px; }
-
       .kiosk-header { padding: 10px 12px; }
       .kiosk-clock { font-size: 13px; }
-
       .admin-login-card { padding: 24px 14px; }
       .students-grid { grid-template-columns: 1fr; }
-
-      /* Hide less-essential table columns on very small screens */
+      /* Hide department and date columns on very small screens to save space */
       table th:nth-child(3), table td:nth-child(3),
-      table th:nth-child(4), table td:nth-child(4) {
-        display: none;
-      }
+      table th:nth-child(4), table td:nth-child(4) { display: none; }
     }
 
-    /* ── Autocomplete dropdown ── */
+    /* ── AUTOCOMPLETE DROPDOWN ──
+       Appears below the enrollment number input while typing. */
     .ac-wrap { position: relative; }
-    .ac-dropdown {
-      position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 200;
-      background: rgba(28,28,30,0.98);
-      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-      border: 1px solid var(--border2);
-      border-radius: var(--radius-sm);
-      box-shadow: 0 12px 40px rgba(0,0,0,0.5);
-      max-height: 220px; overflow-y: auto;
-      display: none;
-    }
+    .ac-dropdown { position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 200; background: rgba(28,28,30,0.98); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--border2); border-radius: var(--radius-sm); box-shadow: 0 12px 40px rgba(0,0,0,0.5); max-height: 220px; overflow-y: auto; display: none; }
     .ac-dropdown.open { display: block; }
-    .ac-item {
-      padding: 11px 14px; cursor: pointer;
-      display: flex; flex-direction: column; gap: 2px;
-      border-bottom: 1px solid var(--border);
-      transition: background .15s;
-    }
+    .ac-item { padding: 11px 14px; cursor: pointer; display: flex; flex-direction: column; gap: 2px; border-bottom: 1px solid var(--border); transition: background .15s; }
     .ac-item:last-child { border-bottom: none; }
     .ac-item:hover, .ac-item.highlighted { background: rgba(240,81,56,0.1); }
     .ac-item-enr { font-size: 13px; font-weight: 700; color: var(--accent); font-family: var(--font-mono); }
     .ac-item-name { font-size: 12px; color: var(--text2); font-weight: 500; }
     .ac-item-meta { font-size: 11px; color: var(--text3); }
-    .autofill-badge {
-      display: inline-flex; align-items: center; gap: 5px;
-      font-size: 11px; font-weight: 700; letter-spacing: 0.04em;
-      color: var(--success); background: rgba(50,215,75,0.08);
-      border: 1px solid rgba(50,215,75,0.2);
-      border-radius: var(--radius-pill); padding: 3px 10px;
-      margin-bottom: 10px; display: none;
-    }
+    .autofill-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; color: var(--success); background: rgba(50,215,75,0.08); border: 1px solid rgba(50,215,75,0.2); border-radius: var(--radius-pill); padding: 3px 10px; margin-bottom: 10px; display: none; }
     .autofill-badge.show { display: inline-flex; }
-    .field input.autofilled {
-      border-color: rgba(50,215,75,0.35);
-      background: rgba(50,215,75,0.04);
-      color: var(--text2);
-    }
+    .field input.autofilled { border-color: rgba(50,215,75,0.35); background: rgba(50,215,75,0.04); color: var(--text2); }
+
+    /* Larger tap targets on touch devices (Apple HIG recommends 44px minimum) */
     @media (hover: none) and (pointer: coarse) {
       .btn { min-height: 44px; }
       .tab-btn { min-height: 40px; }
       .kiosk-admin-btn { min-height: 40px; }
-      .field input, .field select { font-size: 16px; /* prevents iOS zoom */ }
+      .field input, .field select { font-size: 16px; /* Prevents iOS from zooming in on focus */ }
     }
 
-    /* ── Landscape phone ── */
+    /* Landscape phone: camera smaller, horizontal layout to fit both camera + status */
     @media (max-height: 500px) and (orientation: landscape) {
       .camera-wrap { width: 52vh; height: 52vh; }
       .camera-square { width: 52vh; height: 52vh; }
@@ -752,253 +459,146 @@
       .kiosk-recent { bottom: 6px; }
     }
 
-    /* ── Enroll Wizard ── */
+    /* ── ENROLL WIZARD ── 3-step form to add a new student */
     .wizard-step { display: none; }
     .wizard-step.active { display: block; animation: fade-in .3s ease-out forwards; }
-
-    .step-indicator {
-      display: flex; align-items: center; gap: 0;
-      margin-bottom: 28px;
-    }
-    .step-dot {
-      width: 28px; height: 28px; border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 12px; font-weight: 800;
-      background: var(--surface2); border: 1px solid var(--border2);
-      color: var(--text3); flex-shrink: 0; transition: all .3s;
-    }
+    .step-indicator { display: flex; align-items: center; gap: 0; margin-bottom: 28px; }
+    .step-dot { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; background: var(--surface2); border: 1px solid var(--border2); color: var(--text3); flex-shrink: 0; transition: all .3s; }
     .step-dot.done   { background: var(--success); border-color: var(--success); color: #000; }
-    .step-dot.active { background: var(--accent);  border-color: var(--accent);  color: #fff;
-      box-shadow: 0 0 0 4px rgba(240,81,56,0.2); }
-    .step-line {
-      flex: 1; height: 2px;
-      background: var(--border2); transition: background .3s;
-    }
+    .step-dot.active { background: var(--accent);  border-color: var(--accent);  color: #fff; box-shadow: 0 0 0 4px rgba(240,81,56,0.2); }
+    .step-line { flex: 1; height: 2px; background: var(--border2); transition: background .3s; }
     .step-line.done { background: var(--success); }
-    .step-label {
-      font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
-      text-transform: uppercase; color: var(--text3); margin-top: 4px;
-      text-align: center; width: 60px;
-    }
+    .step-label { font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text3); margin-top: 4px; text-align: center; width: 60px; }
     .step-label.active { color: var(--accent); }
     .step-label.done   { color: var(--success); }
-
-    .step-header {
-      display: flex; flex-direction: column; gap: 2px;
-      margin-bottom: 20px;
-    }
+    .step-header { display: flex; flex-direction: column; gap: 2px; margin-bottom: 20px; }
     .step-header-title { font-size: 17px; font-weight: 800; letter-spacing: -0.02em; }
     .step-header-sub   { font-size: 13px; color: var(--text2); font-weight: 500; }
+    .student-preview { background: rgba(255,255,255,0.04); border: 1px solid var(--border2); border-radius: 16px; padding: 20px 22px; display: flex; flex-direction: column; gap: 14px; margin-bottom: 20px; }
 
-    /* Student preview card */
-    .student-preview {
-      background: rgba(255,255,255,0.04);
-      border: 1px solid var(--border2);
-      border-radius: 16px; padding: 20px 22px;
-      display: flex; flex-direction: column; gap: 14px;
-      margin-bottom: 20px;
-    }
+    /* ── PIN WALL ──
+       Full-screen lock screen shown on every page reload.
+       Requires 4-digit PIN before the app is accessible. */
+    #page-pin-wall { display: none; align-items: center; justify-content: center; min-height: 100vh; width: 100%; position: fixed; inset: 0; z-index: 2000; background: #000; overflow: hidden; }
 
-    /* ─── PIN WALL ─── */
-    #page-pin-wall {
-      display: none;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      width: 100%;
-      position: fixed;
-      inset: 0;
-      z-index: 2000;
-      background: #000;
-      overflow: hidden;
-    }
-    .pin-ambient-blobs {
-      position: absolute; inset: 0; z-index: 0;
-      filter: blur(140px); opacity: 0.5;
-    }
-    .blob {
-      position: absolute; border-radius: 50%;
-      animation: blobMove 12s infinite alternate ease-in-out;
-    }
+    /* Animated color blobs in the background of the PIN screen */
+    .pin-ambient-blobs { position: absolute; inset: 0; z-index: 0; filter: blur(140px); opacity: 0.5; }
+    .blob { position: absolute; border-radius: 50%; animation: blobMove 12s infinite alternate ease-in-out; }
     .blob-1 { width: 450px; height: 450px; background: rgba(240,81,56,0.3); top: -10%; left: -10%; }
     .blob-2 { width: 500px; height: 500px; background: rgba(10,132,255,0.25); bottom: -15%; right: -10%; animation-delay: -4s; }
     .blob-3 { width: 350px; height: 350px; background: rgba(255,214,10,0.15); top: 30%; right: 20%; animation-delay: -8s; }
-    @keyframes blobMove {
-      0% { transform: translate(0,0) scale(1); }
-      100% { transform: translate(60px, 40px) scale(1.1); }
-    }
+    @keyframes blobMove { 0% { transform: translate(0,0) scale(1); } 100% { transform: translate(60px, 40px) scale(1.1); } }
 
-    .pin-card {
-      position: relative; z-index: 1;
-      width: 100%; max-width: 380px;
-      padding: 56px 36px;
-      text-align: center;
-      background: rgba(20, 20, 22, 0.45);
-      -webkit-backdrop-filter: blur(45px) saturate(220%);
-      backdrop-filter: blur(45px) saturate(220%);
-      border: 1px solid rgba(255, 255, 255, 0.08); /* Outer border */
-      border-radius: 44px;
-      box-shadow: 0 40px 100px rgba(0, 0, 0, 0.7), 
-                  inset 0 0 0 1px rgba(255, 255, 255, 0.05); /* Inner thin border */
-      animation: pinPopPremium .8s cubic-bezier(.16, 1, .3, 1);
-    }
-    @keyframes pinPopPremium {
-      from { transform: scale(0.8) translateY(30px); opacity: 0; }
-      to { transform: scale(1) translateY(0); opacity: 1; }
-    }
+    /* The frosted glass PIN card in the center */
+    .pin-card { position: relative; z-index: 1; width: 100%; max-width: 380px; padding: 56px 36px; text-align: center; background: rgba(20, 20, 22, 0.45); -webkit-backdrop-filter: blur(45px) saturate(220%); backdrop-filter: blur(45px) saturate(220%); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 44px; box-shadow: 0 40px 100px rgba(0, 0, 0, 0.7), inset 0 0 0 1px rgba(255, 255, 255, 0.05); animation: pinPopPremium .8s cubic-bezier(.16, 1, .3, 1); }
+    @keyframes pinPopPremium { from { transform: scale(0.8) translateY(30px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
     .pin-header { margin-bottom: 40px; }
-    .pin-icon { 
-      font-size: 52px; margin-bottom: 18px; 
-      filter: drop-shadow(0 4px 25px rgba(240,81,56,0.4));
-      animation: iconFloat 4s ease-in-out infinite;
-    }
+    .pin-icon { font-size: 52px; margin-bottom: 18px; filter: drop-shadow(0 4px 25px rgba(240,81,56,0.4)); animation: iconFloat 4s ease-in-out infinite; }
     @keyframes iconFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
-    .pin-title { 
-      font-size: 26px; font-weight: 300; letter-spacing: -0.01em; margin-bottom: 10px;
-      color: #fff; text-shadow: 0 4px 10px rgba(0,0,0,0.3);
-    }
+    .pin-title { font-size: 26px; font-weight: 300; letter-spacing: -0.01em; margin-bottom: 10px; color: #fff; }
     .pin-sub { font-size: 14px; color: var(--text2); font-weight: 400; opacity: 0.8; }
-    
-    .pin-display {
-      display: flex; justify-content: center; gap: 22px; margin-bottom: 52px;
-    }
-    .pin-dot {
-      width: 12px; height: 12px; border-radius: 50%;
-      background: rgba(255,255,255,0.08);
-      border: 1px solid rgba(255,255,255,0.03);
-      transition: all 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
-      box-shadow: inset 0 2px 4px rgba(0,0,0,0.4);
-    }
-    .pin-dot.active {
-      background: #fff;
-      box-shadow: 0 0 20px rgba(255,255,255,0.4), 
-                  0 0 40px rgba(255,255,255,0.15),
-                  inset 0 1px 1px rgba(255,255,255,0.8);
-      transform: scale(1.6);
-      border-color: transparent;
-    }
-    .pin-keypad {
-      display: grid; grid-template-columns: repeat(3, 1fr);
-      gap: 24px; margin: 0 auto; max-width: 290px;
-    }
-    .pin-key {
-      position: relative; aspect-ratio: 1; border-radius: 50%;
-      background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(255,255,255,0.06);
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      font-size: 28px; font-weight: 400; color: #fff;
-      cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      user-select: none; -webkit-tap-highlight-color: transparent;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.2), inset 0 1px 1px rgba(255,255,255,0.05);
-    }
-    .pin-key:hover { 
-      background: rgba(255,255,255,0.08); 
-      border-color: rgba(255,255,255,0.15);
-      transform: translateY(-3px) scale(1.05);
-      box-shadow: 0 12px 25px rgba(0,0,0,0.4);
-    }
-    .pin-key:active { 
-      transform: scale(0.9) translateY(0); 
-      background: rgba(255,255,255,0.12);
-      box-shadow: inset 0 3px 12px rgba(0,0,0,0.5);
-    }
+
+    /* 4 dots that fill in as user types their PIN */
+    .pin-display { display: flex; justify-content: center; gap: 22px; margin-bottom: 52px; }
+    .pin-dot { width: 12px; height: 12px; border-radius: 50%; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.03); transition: all 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28); }
+    .pin-dot.active { background: #fff; box-shadow: 0 0 20px rgba(255,255,255,0.4), 0 0 40px rgba(255,255,255,0.15); transform: scale(1.6); border-color: transparent; }
+
+    /* 3x4 numpad grid */
+    .pin-keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin: 0 auto; max-width: 290px; }
+    .pin-key { position: relative; aspect-ratio: 1; border-radius: 50%; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 28px; font-weight: 400; color: #fff; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); user-select: none; -webkit-tap-highlight-color: transparent; }
+    .pin-key:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.15); transform: translateY(-3px) scale(1.05); }
+    .pin-key:active { transform: scale(0.9); background: rgba(255,255,255,0.12); }
     .pin-key.del { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.1em; }
     .pin-key-sub { font-size: 9px; color: rgba(255,255,255,0.3); font-weight: 700; margin-top: -3px; }
 
-    /* Staggered Entry Animation */
+    /* Keys start invisible and animate in with a stagger (each has a different animation-delay) */
     .pin-key { opacity: 0; transform: translateY(20px); }
-    #page-pin-wall.flex .pin-key {
-      animation: keyFadePremium 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
+    #page-pin-wall.flex .pin-key { animation: keyFadePremium 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
     @keyframes keyFadePremium { to { opacity: 1; transform: translateY(0); } }
 
+    /* Wrong PIN shake animation */
     .shake { animation: pinShakePremium .4s cubic-bezier(.36,.07,.19,.97) both; }
-    @keyframes pinShakePremium {
-      10%, 90% { transform: translate3d(-2px, 0, 0); }
-      20%, 80% { transform: translate3d(4px, 0, 0); }
-      30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
-      40%, 60% { transform: translate3d(6px, 0, 0); }
-    }
-    
-    .unlock-p-anim { animation: pinUnlockAway 0.8s cubic-bezier(.16, 1, .3, 1) forwards; }
-    @keyframes pinUnlockAway {
-      to { transform: scale(1.1); opacity: 0; filter: blur(20px); }
-    }
-    .preview-row {
-      display: flex; justify-content: space-between; align-items: flex-start;
-      gap: 10px; border-bottom: 1px solid var(--border); padding-bottom: 12px;
-    }
-    .preview-row:last-child { border-bottom: none; padding-bottom: 0; }
-    .preview-key {
-      font-size: 10px; font-weight: 700; color: var(--text3);
-      letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap;
-    }
-    .preview-val { font-size: 14px; font-weight: 600; color: var(--text); text-align: right; }
-    .preview-enr {
-      font-size: 22px; font-weight: 900; letter-spacing: -0.03em;
-      color: var(--accent); font-family: var(--font-mono);
-    }
-    .preview-name { font-size: 18px; font-weight: 800; letter-spacing: -0.02em; }
+    @keyframes pinShakePremium { 10%, 90% { transform: translate3d(-2px, 0, 0); } 20%, 80% { transform: translate3d(4px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-6px, 0, 0); } 40%, 60% { transform: translate3d(6px, 0, 0); } }
 
-    .enroll-step-search {
-      max-width: 540px; margin: 0 auto;
-    }
-    .search-box {
-      display: flex; gap: 10px; align-items: flex-start;
-    }
+    /* Correct PIN: card scales up and fades out before switching page */
+    .unlock-p-anim { animation: pinUnlockAway 0.8s cubic-bezier(.16, 1, .3, 1) forwards; }
+    @keyframes pinUnlockAway { to { transform: scale(1.1); opacity: 0; filter: blur(20px); } }
+
+    /* Student info preview rows in the enroll wizard */
+    .preview-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; border-bottom: 1px solid var(--border); padding-bottom: 12px; }
+    .preview-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .preview-key { font-size: 10px; font-weight: 700; color: var(--text3); letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; }
+    .preview-val { font-size: 14px; font-weight: 600; color: var(--text); text-align: right; }
+    .preview-enr { font-size: 22px; font-weight: 900; letter-spacing: -0.03em; color: var(--accent); font-family: var(--font-mono); }
+    .preview-name { font-size: 18px; font-weight: 800; letter-spacing: -0.02em; }
+    .enroll-step-search { max-width: 540px; margin: 0 auto; }
+    .search-box { display: flex; gap: 10px; align-items: flex-start; }
   </style>
 </head>
 
 <body>
-    <div id="app">
-      <!-- ─── PIN WALL ─── -->
-      <div id="page-pin-wall">
-        <div class="pin-ambient-blobs">
-          <div class="blob blob-1"></div>
-          <div class="blob blob-2"></div>
-          <div class="blob blob-3"></div>
+  <div id="app">
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         PIN WALL
+         First thing shown on every page load. User must enter the
+         correct 4-digit PIN to proceed. PIN is verified client-side
+         using SHA-256 hashing so the plain PIN is never stored.
+    ═══════════════════════════════════════════════════════════════ -->
+    <div id="page-pin-wall">
+      <!-- Decorative animated blobs in the background -->
+      <div class="pin-ambient-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+      </div>
+      <div class="pin-card" id="pin-card">
+        <div class="pin-header">
+          <div class="pin-icon">🔐</div>
+          <h1 class="pin-title">Authorize Access</h1>
+          <p class="pin-sub">Enter PIN to unlock Swift Attendance</p>
         </div>
-        <div class="pin-card" id="pin-card">
-          <div class="pin-header">
-            <div class="pin-icon">🔐</div>
-            <h1 class="pin-title">Authorize Access</h1>
-            <p class="pin-sub">Enter PIN to unlock Swift Attendance</p>
-          </div>
-          <div class="pin-display">
-            <div class="pin-dot" id="dot-0"></div>
-            <div class="pin-dot" id="dot-1"></div>
-            <div class="pin-dot" id="dot-2"></div>
-            <div class="pin-dot" id="dot-3"></div>
-          </div>
-          <div class="pin-keypad" id="pin-keypad">
-            <div class="pin-key" style="animation-delay: 0.1s" onclick="handlePinKey('1')">1<div class="pin-key-sub"></div></div>
-            <div class="pin-key" style="animation-delay: 0.15s" onclick="handlePinKey('2')">2<div class="pin-key-sub">ABC</div></div>
-            <div class="pin-key" style="animation-delay: 0.2s" onclick="handlePinKey('3')">3<div class="pin-key-sub">DEF</div></div>
-            <div class="pin-key" style="animation-delay: 0.25s" onclick="handlePinKey('4')">4<div class="pin-key-sub">GHI</div></div>
-            <div class="pin-key" style="animation-delay: 0.3s" onclick="handlePinKey('5')">5<div class="pin-key-sub">JKL</div></div>
-            <div class="pin-key" style="animation-delay: 0.35s" onclick="handlePinKey('6')">6<div class="pin-key-sub">MNO</div></div>
-            <div class="pin-key" style="animation-delay: 0.4s" onclick="handlePinKey('7')">7<div class="pin-key-sub">PQRS</div></div>
-            <div class="pin-key" style="animation-delay: 0.45s" onclick="handlePinKey('8')">8<div class="pin-key-sub">TUV</div></div>
-            <div class="pin-key" style="animation-delay: 0.5s" onclick="handlePinKey('9')">9<div class="pin-key-sub">WXYZ</div></div>
-            <div class="pin-key del" style="animation-delay: 0.55s" onclick="handlePinKey('del')">DEL</div>
-            <div class="pin-key" style="animation-delay: 0.6s" onclick="handlePinKey('0')">0<div class="pin-key-sub">+</div></div>
-            <div class="pin-key del" style="animation-delay: 0.65s" onclick="handlePinKey('clr')">CLR</div>
-          </div>
+        <!-- 4 dots — one fills in (turns white) for each digit typed -->
+        <div class="pin-display">
+          <div class="pin-dot" id="dot-0"></div>
+          <div class="pin-dot" id="dot-1"></div>
+          <div class="pin-dot" id="dot-2"></div>
+          <div class="pin-dot" id="dot-3"></div>
+        </div>
+        <!-- Numpad: onclick calls handlePinKey() with the digit/action -->
+        <div class="pin-keypad" id="pin-keypad">
+          <div class="pin-key" style="animation-delay: 0.1s"  onclick="handlePinKey('1')">1<div class="pin-key-sub"></div></div>
+          <div class="pin-key" style="animation-delay: 0.15s" onclick="handlePinKey('2')">2<div class="pin-key-sub">ABC</div></div>
+          <div class="pin-key" style="animation-delay: 0.2s"  onclick="handlePinKey('3')">3<div class="pin-key-sub">DEF</div></div>
+          <div class="pin-key" style="animation-delay: 0.25s" onclick="handlePinKey('4')">4<div class="pin-key-sub">GHI</div></div>
+          <div class="pin-key" style="animation-delay: 0.3s"  onclick="handlePinKey('5')">5<div class="pin-key-sub">JKL</div></div>
+          <div class="pin-key" style="animation-delay: 0.35s" onclick="handlePinKey('6')">6<div class="pin-key-sub">MNO</div></div>
+          <div class="pin-key" style="animation-delay: 0.4s"  onclick="handlePinKey('7')">7<div class="pin-key-sub">PQRS</div></div>
+          <div class="pin-key" style="animation-delay: 0.45s" onclick="handlePinKey('8')">8<div class="pin-key-sub">TUV</div></div>
+          <div class="pin-key" style="animation-delay: 0.5s"  onclick="handlePinKey('9')">9<div class="pin-key-sub">WXYZ</div></div>
+          <div class="pin-key del" style="animation-delay: 0.55s" onclick="handlePinKey('del')">DEL</div>
+          <div class="pin-key" style="animation-delay: 0.6s"  onclick="handlePinKey('0')">0<div class="pin-key-sub">+</div></div>
+          <div class="pin-key del" style="animation-delay: 0.65s" onclick="handlePinKey('clr')">CLR</div>
         </div>
       </div>
+    </div>
 
-
-    <!-- ═══════════════════════════════════ LOADING OVERLAY ═══════════════════════════════════ -->
+    <!-- Loading overlay (shown while face-api.js models download from CDN) -->
     <div id="loading-overlay" class="loading-overlay hidden">
       <div class="loading-title">Swift Coding Club</div>
       <div class="loading-sub" id="loading-text">Loading AI models…</div>
       <div class="loading-bar"><div class="loading-bar-fill" id="loading-bar"></div></div>
     </div>
 
-    <!-- SOUND INDICATOR -->
+    <!-- Small notification banner that flashes when attendance is marked -->
     <div class="sound-flash" id="sound-flash">🔔 Attendance marked</div>
 
-    <!-- ═══════════════════════════════════ SETUP PAGE ═══════════════════════════════════ -->
+    <!-- ═══════════════════════════════════════════════════════════════
+         SETUP PAGE
+         Shown only the very first time, or if credentials are cleared.
+         Guides the admin through creating Supabase tables and entering
+         the project URL + API key.
+    ═══════════════════════════════════════════════════════════════ -->
     <div id="page-setup" style="display:none;">
       <div class="setup-card glass">
         <div class="swift-logo">
@@ -1011,8 +611,7 @@
             <div class="step-num">1</div>
             <div class="step-body">
               <div class="step-title">Create a Supabase project</div>
-              <div class="step-desc">Go to <a href="https://supabase.com" target="_blank"
-                  style="color:var(--accent)">supabase.com</a> → New Project → fill in name & password → Create.</div>
+              <div class="step-desc">Go to <a href="https://supabase.com" target="_blank">supabase.com</a> → New Project → fill in name & password → Create.</div>
             </div>
           </div>
           <div class="step">
@@ -1043,15 +642,11 @@ CREATE TABLE attendance (
   UNIQUE(student_id, date)
 );
 
--- Enable Row Level Security
 ALTER TABLE students ENABLE ROW LEVEL SECURITY;
 ALTER TABLE attendance ENABLE ROW LEVEL SECURITY;
 
--- 1. Students: Public can read for recognition; only Admins can manage.
 CREATE POLICY "Public: Read students" ON students FOR SELECT USING (true);
 CREATE POLICY "Admin: Manage students" ON students FOR ALL TO authenticated USING (true);
-
--- 2. Attendance: Public can read/insert; only Admins can delete/modify logs.
 CREATE POLICY "Public: Read attendance" ON attendance FOR SELECT USING (true);
 CREATE POLICY "Public: Insert attendance" ON attendance FOR INSERT WITH CHECK (true);
 CREATE POLICY "Admin: Manage attendance" ON attendance FOR ALL TO authenticated USING (true);</div>
@@ -1064,18 +659,11 @@ CREATE POLICY "Admin: Manage attendance" ON attendance FOR ALL TO authenticated 
               <div class="step-title">Enter your Supabase credentials</div>
               <div class="step-desc">Find these in your project → <b>Settings → API</b></div>
               <div class="step-fields">
-                <div class="field">
-                  <label>Project URL</label>
-                  <input type="text" id="setup-url" placeholder="https://xxxx.supabase.co" />
-                </div>
-                <div class="field">
-                  <label>Anon / Public Key</label>
-                  <input type="text" id="setup-key" placeholder="eyJhbGciOiJ..." />
-                </div>
+                <div class="field"><label>Project URL</label><input type="text" id="setup-url" placeholder="https://xxxx.supabase.co" /></div>
+                <div class="field"><label>Anon / Public Key</label><input type="text" id="setup-key" placeholder="eyJhbGciOiJ..." /></div>
                 <div id="setup-error"></div>
                 <div id="setup-success"></div>
-                <button class="btn btn-primary" id="setup-connect-btn" onclick="connectSupabase()">Connect &amp; Launch
-                  →</button>
+                <button class="btn btn-primary" id="setup-connect-btn" onclick="connectSupabase()">Connect &amp; Launch →</button>
               </div>
             </div>
           </div>
@@ -1083,9 +671,15 @@ CREATE POLICY "Admin: Manage attendance" ON attendance FOR ALL TO authenticated 
       </div>
     </div>
 
-    <!-- ═══════════════════════════════════ KIOSK PAGE ═══════════════════════════════════ -->
-    <div id="page-kiosk"
-      style="display:none; flex-direction:column; align-items:center; justify-content:center; min-height:100vh;">
+    <!-- ═══════════════════════════════════════════════════════════════
+         KIOSK PAGE
+         The main attendance scanner. Runs 24/7 on the lab PC.
+         Shows live camera feed, scans for faces every 150ms,
+         and marks attendance when a registered student is detected.
+    ═══════════════════════════════════════════════════════════════ -->
+    <div id="page-kiosk" style="display:none; flex-direction:column; align-items:center; justify-content:center; min-height:100vh;">
+
+      <!-- Sticky header: logo / live clock / AI status / Admin button -->
       <div class="kiosk-header">
         <div class="kiosk-title">
           <div class="kiosk-title-icon"><img src="swift.jpg" alt="Swift Coding Club" /></div>
@@ -1093,6 +687,7 @@ CREATE POLICY "Admin: Manage attendance" ON attendance FOR ALL TO authenticated 
         </div>
         <div id="kiosk-clock" class="kiosk-clock">00:00:00</div>
         <div style="display:flex;align-items:center;gap:10px;">
+          <!-- Shows "Loading AI…" while models download, then "AI Ready" -->
           <div id="model-status" class="model-tag loading"><div class="dot-blink"></div> Loading AI…</div>
           <button class="kiosk-admin-btn" onclick="goAdminLogin()">⚙ Admin</button>
         </div>
@@ -1101,6 +696,7 @@ CREATE POLICY "Admin: Manage attendance" ON attendance FOR ALL TO authenticated 
       <div class="kiosk-body">
         <div class="kiosk-prompt">Look at the camera to mark your attendance</div>
 
+        <!-- Camera viewfinder with animated corner brackets and scan sweep -->
         <div class="camera-wrap">
           <div class="camera-glow"></div>
           <div class="corner corner-tl corner-pulse"></div>
@@ -1110,10 +706,12 @@ CREATE POLICY "Admin: Manage attendance" ON attendance FOR ALL TO authenticated 
           <div class="camera-square">
             <video id="kiosk-video" autoplay muted playsinline></video>
             <div class="scan-sweep"></div>
+            <!-- Green flash overlay on successful recognition -->
             <div class="camera-success-flash" id="cam-flash"></div>
           </div>
         </div>
 
+        <!-- Status pill: changes color/text based on what is happening -->
         <div class="kiosk-status">
           <div id="kiosk-status-pill" class="status-pill">
             <div class="status-dot"></div>
@@ -1121,16 +719,18 @@ CREATE POLICY "Admin: Manage attendance" ON attendance FOR ALL TO authenticated 
           </div>
         </div>
 
+        <!-- Result card: pops up showing student name after recognition -->
         <div id="kiosk-result-card" class="kiosk-result-card">
           <div id="kiosk-result-name" class="kiosk-result-name"></div>
           <div id="kiosk-result-detail" class="kiosk-result-detail"></div>
         </div>
       </div>
 
+      <!-- Bottom strip showing the last 5 students who marked attendance today -->
       <div class="kiosk-recent" id="kiosk-recent"></div>
     </div>
 
-    <!-- ═══════════════════════════════════ ADMIN LOGIN ═══════════════════════════════════ -->
+    <!-- Admin login page (email + password via Supabase Auth) -->
     <div id="page-admin-login" style="display:none; align-items:center; justify-content:center; min-height:100vh;">
       <div class="admin-login-card glass">
         <div class="admin-login-icon">🔐</div>
@@ -1142,6 +742,7 @@ CREATE POLICY "Admin: Manage attendance" ON attendance FOR ALL TO authenticated 
             <label>Password</label>
             <div style="position:relative;">
               <input type="password" id="admin-pass-input" placeholder="Enter password" onkeydown="if(event.key==='Enter')checkAdminPass()" style="padding-right: 40px;" />
+              <!-- Eye toggle to show/hide password text -->
               <button onclick="togglePass()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text2);font-size:16px;padding:4px;">👁</button>
             </div>
           </div>
@@ -1152,7 +753,11 @@ CREATE POLICY "Admin: Manage attendance" ON attendance FOR ALL TO authenticated 
       </div>
     </div>
 
-    <!-- ═══════════════════════════════════ ADMIN PANEL ═══════════════════════════════════ -->
+    <!-- ═══════════════════════════════════════════════════════════════
+         ADMIN PANEL
+         Three tabs: Enroll (add new student), Logs (attendance history),
+         Members (view/delete enrolled students).
+    ═══════════════════════════════════════════════════════════════ -->
     <div id="page-admin" style="display:none; flex-direction:column; min-height:100vh;">
       <div class="admin-header">
         <div class="admin-header-left">
@@ -1161,9 +766,9 @@ CREATE POLICY "Admin: Manage attendance" ON attendance FOR ALL TO authenticated 
             Swift Coding Club
           </div>
           <div class="admin-tabs">
-            <button class="tab-btn active" id="tab-enroll" onclick="switchTab('enroll')">💻 Enroll</button>
-            <button class="tab-btn" id="tab-logs" onclick="switchTab('logs')">📋 Logs</button>
-            <button class="tab-btn" id="tab-students" onclick="switchTab('students')">👥 Members</button>
+            <button class="tab-btn active" id="tab-enroll"   onclick="switchTab('enroll')">💻 Enroll</button>
+            <button class="tab-btn"        id="tab-logs"     onclick="switchTab('logs')">📋 Logs</button>
+            <button class="tab-btn"        id="tab-students" onclick="switchTab('students')">👥 Members</button>
           </div>
         </div>
         <div style="display:flex;gap:8px;">
@@ -1173,11 +778,10 @@ CREATE POLICY "Admin: Manage attendance" ON attendance FOR ALL TO authenticated 
       </div>
       <div class="admin-content">
 
-        <!-- ENROLL TAB — Step Wizard -->
+        <!-- ENROLL TAB: 3-step wizard -->
         <div id="tab-content-enroll">
           <div id="enroll-wizard">
-
-            <!-- Step indicator -->
+            <!-- Visual step progress indicator (dots + lines) -->
             <div class="step-indicator">
               <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
                 <div class="step-dot active" id="sdot-1">1</div>
@@ -1195,7 +799,7 @@ CREATE POLICY "Admin: Manage attendance" ON attendance FOR ALL TO authenticated 
               </div>
             </div>
 
-            <!-- ── STEP 1: Enrollment Lookup ── -->
+            <!-- Step 1: Search for student by enrollment number -->
             <div class="wizard-step active" id="wstep-1">
               <div class="enroll-step-search panel glass">
                 <div class="step-header">
@@ -1203,15 +807,14 @@ CREATE POLICY "Admin: Manage attendance" ON attendance FOR ALL TO authenticated 
                   <div class="step-header-sub">Type to search from student master database</div>
                 </div>
                 <div class="search-box">
+                  <!-- .ac-wrap needed for autocomplete dropdown positioning -->
                   <div class="field ac-wrap" style="flex:1">
-                    <input type="text" id="enroll-enrollment"
-                      placeholder="e.g. 2503031461401"
-                      autocomplete="off"
-                      oninput="filterEnrollment(this.value)"
-                      onkeydown="acKeyNav(event)"
-                      onfocus="filterEnrollment(this.value)"
+                    <input type="text" id="enroll-enrollment" placeholder="e.g. 2503031461401" autocomplete="off"
+                      oninput="filterEnrollment(this.value)"     <!-- Live search as user types -->
+                      onkeydown="acKeyNav(event)"                <!-- Arrow key navigation in dropdown -->
+                      onfocus="filterEnrollment(this.value)"     <!-- Show dropdown on focus too -->
                       style="font-size:18px;font-weight:700;letter-spacing:-0.01em;padding:14px 18px;" />
-                    <div class="ac-dropdown" id="enroll-ac"></div>
+                    <div class="ac-dropdown" id="enroll-ac"></div> <!-- Dropdown appears here -->
                   </div>
                   <button class="btn btn-primary" onclick="wizardLookup()" style="padding:14px 22px;flex-shrink:0">Search →</button>
                 </div>
@@ -1219,16 +822,15 @@ CREATE POLICY "Admin: Manage attendance" ON attendance FOR ALL TO authenticated 
               </div>
             </div>
 
-            <!-- ── STEP 2: Confirm Details ── -->
+            <!-- Step 2: Show student details for confirmation before face capture -->
             <div class="wizard-step" id="wstep-2">
               <div class="panel glass">
                 <div class="step-header">
                   <div class="step-header-title">Confirm Student Details</div>
                   <div class="step-header-sub">Verify the information below before proceeding to face capture</div>
                 </div>
-                <div class="student-preview" id="student-preview">
-                  <!-- filled by JS -->
-                </div>
+                <!-- Filled dynamically by buildPreview() in JS -->
+                <div class="student-preview" id="student-preview"></div>
                 <div style="display:flex;gap:10px;">
                   <button class="btn btn-ghost" onclick="wizardReset()" style="flex:0 0 auto">← Back</button>
                   <button class="btn btn-primary" onclick="wizardConfirm()" style="flex:1">✓ Confirm &amp; Capture Face →</button>
@@ -1236,16 +838,17 @@ CREATE POLICY "Admin: Manage attendance" ON attendance FOR ALL TO authenticated 
               </div>
             </div>
 
-            <!-- ── STEP 3: Face Capture + Enroll ── -->
+            <!-- Step 3: Camera feed for face capture + final enroll button -->
             <div class="wizard-step" id="wstep-3">
               <div class="enroll-grid">
-                <!-- Camera -->
+                <!-- Left: live camera + capture button -->
                 <div class="panel glass">
                   <div class="panel-title"><div class="panel-title-bar"></div>📸 Face Capture</div>
                   <div id="enroll-video-wrap">
                     <video id="enroll-video" autoplay muted playsinline></video>
                     <div class="enroll-video-overlay" id="enroll-overlay">Camera will start here</div>
                   </div>
+                  <!-- Shows green dot + confidence % after a face is captured -->
                   <div class="face-status-badge">
                     <div class="face-status-dot" id="face-dot"></div>
                     <span id="face-status-text">No face captured</span>
@@ -1255,11 +858,11 @@ CREATE POLICY "Admin: Manage attendance" ON attendance FOR ALL TO authenticated 
                     <button class="btn btn-ghost btn-sm" onclick="startEnrollCamera()">⟳ Camera</button>
                   </div>
                 </div>
-                <!-- Summary -->
+                <!-- Right: student info summary + enroll button -->
                 <div class="panel glass">
                   <div class="panel-title"><div class="panel-title-bar"></div>🚀 Enrolling</div>
                   <div class="student-preview" id="student-preview-2" style="margin-bottom:16px"></div>
-                  <div id="enroll-msg"></div>
+                  <div id="enroll-msg"></div> <!-- Success/error message after saving -->
                   <div style="display:flex;gap:10px;margin-top:16px">
                     <button class="btn btn-ghost btn-sm" onclick="wizardBack()" style="flex:0 0 auto">← Back</button>
                     <button class="btn btn-primary" style="flex:1" onclick="saveStudent()">✓ Enroll Student</button>
@@ -1267,45 +870,36 @@ CREATE POLICY "Admin: Manage attendance" ON attendance FOR ALL TO authenticated 
                 </div>
               </div>
             </div>
-
           </div>
         </div>
 
-        <!-- LOGS TAB -->
+        <!-- LOGS TAB: date filter + attendance table + Excel export -->
         <div id="tab-content-logs" class="hidden">
           <div class="logs-toolbar">
+            <!-- Date picker — changing it auto-reloads the table via onchange -->
             <input type="date" id="log-date" class="toolbar-input" onchange="loadLogs()" />
-            <button class="btn btn-primary btn-sm" onclick="exportExcel()" style="margin-left:auto;">⬇ Export
-              Excel</button>
+            <button class="btn btn-primary btn-sm" onclick="exportExcel()" style="margin-left:auto;">⬇ Export Excel</button>
           </div>
           <div class="data-table-wrap">
             <table>
               <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Name</th>
-                  <th>Enrollment No</th>
-                  <th>Department</th>
-                  <th>Date</th>
-                  <th>Time In</th>
-                </tr>
+                <tr><th>#</th><th>Name</th><th>Enrollment No</th><th>Department</th><th>Date</th><th>Time In</th></tr>
               </thead>
               <tbody id="logs-tbody">
-                <tr>
-                  <td colspan="6" class="empty-state">Select a date and click Filter</td>
-                </tr>
+                <tr><td colspan="6" class="empty-state">Select a date and click Filter</td></tr>
               </tbody>
             </table>
           </div>
           <div id="logs-count" style="font-size:12px;color:var(--text2);font-weight:600;margin-top:12px;text-align:right;"></div>
         </div>
 
-        <!-- STUDENTS TAB -->
+        <!-- STUDENTS TAB: grid of enrolled student cards -->
         <div id="tab-content-students" class="hidden">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
-          <div style="font-size:13px;color:var(--text2);font-weight:600;" id="student-count">Loading…</div>
+            <div style="font-size:13px;color:var(--text2);font-weight:600;" id="student-count">Loading…</div>
             <button class="btn btn-ghost btn-sm" onclick="loadStudents(true)">⟳ Refresh</button>
           </div>
+          <!-- Cards rendered here dynamically by loadStudents() -->
           <div class="students-grid" id="students-grid">
             <div class="empty-state">Loading students...</div>
           </div>
@@ -1313,234 +907,258 @@ CREATE POLICY "Admin: Manage attendance" ON attendance FOR ALL TO authenticated 
 
       </div>
     </div>
+  </div><!-- end #app -->
 
-  </div>
-
-  <!-- ─── Scripts ─── -->
+  <!-- ── EXTERNAL LIBRARIES ──
+       face-api.js : face detection + 128-d descriptor extraction (runs 100% locally in browser)
+       supabase-js : Supabase database client (students, attendance tables)
+       SheetJS     : Excel (.xlsx) file generation for attendance export -->
   <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 
   <script>
-    'use strict';
+    'use strict'; // Strict mode: catches common JS mistakes at runtime
 
-    /**
-     * ============================================================================
-     * SWIFT ATTENDANCE SYSTEM — CORE LOGIC
-     * ============================================================================
-     * Architecture Overview:
-     * 1. State Management (S object): Holds global UI state, active camera streams,
-     *    and the active student working caches (to prevent excessive DB polling).
-     * 2. Face API Integration: Uses `face-api.js` for completely local, edge-based 
-     *    facial recognition. We use the TinyFaceDetector for maximum speed.
-     * 3. Supabase Integration: Acts as the real-time backend. Handles student
-     *    enrollments, attendance logging, and secure administrative sessions.
-     * 
-     * Core Flows:
-     * - KIOSK LOOP: Continuously captures frames from `kiosk-video`, extracts a 
-     *   128-d float array (descriptor), and calculates the Euclidean distance 
-     *   against the `S.descriptorCache` to find the closest enrolled student.
-     * - ENROLL WIZARD: A 3-step wizard that hooks into `students_master`. 
-     *   It checks against the `students` array to explicitly prevent duplicate ID 
-     *   and duplicate Face descriptor registrations.
-     * - MIDNIGHT RESET: Timezone-aware date tracking (using local system offsets) 
-     *   automatically clears the `.markedToday` cache when the calendar day rolls over.
-     * ============================================================================
-     */
-
-    // ════════════════════════════════════════════════════════
-    //  STATE
-    // ════════════════════════════════════════════════════════
+    // ════════════════════════════════════════════════════════════════
+    //  GLOBAL STATE OBJECT (S)
+    // ════════════════════════════════════════════════════════════════
+    // All mutable application state lives here in one place.
+    // This makes it easy to find what changed and why.
     const S = {
-      sb: null,
-      config: null,
-      students: [],
-      masterData: [],           // students_master rows for autocomplete
-      wizardStudent: null,      // student selected in wizard step 1
-      descriptorCache: [],      // pre-converted Float32Arrays — rebuilt on loadStudents
-      markedToday: new Set(),   // student IDs already marked today — skip DB duplicate check
-      modelsLoaded: false,
-      kioskStream: null,
-      kioskScanTimer: null,
-      kioskCooldown: false,
-      enrollStream: null,
-      capturedDescriptor: null,
-      currentPage: 'setup',
-      currentTab: 'enroll',
-      logsData: [],
-      adminSession: null,
-      pinAuthorized: false,
-      loginAttempts: { count: 0 },
+      sb: null,               // Supabase client instance (set by initSupabase)
+      config: null,           // Supabase URL + key (loaded from localStorage or hardcoded)
+      students: [],           // All enrolled students loaded from DB
+      masterData: [],         // All rows from students_master (for autocomplete in enroll)
+      wizardStudent: null,    // The student currently being enrolled (wizard state)
+      descriptorCache: [],    // Pre-converted Float32Array face vectors for fast matching
+      markedToday: new Set(), // Student IDs already marked today (in-memory cache to skip DB check)
+      modelsLoaded: false,    // True once face-api.js models finish downloading
+      kioskStream: null,      // Active webcam MediaStream for the kiosk camera
+      kioskScanTimer: null,   // setTimeout handle for the scan loop (used to cancel it)
+      kioskCooldown: false,   // True during the pause after a recognition (prevents spam)
+      enrollStream: null,     // Active webcam MediaStream for the enroll camera
+      capturedDescriptor: null, // The Float32Array face descriptor from the enroll camera
+      currentPage: 'setup',   // Which page is currently visible
+      currentTab: 'enroll',   // Which admin tab is active
+      logsData: [],           // Attendance log rows currently shown in the logs tab
+      adminSession: null,     // Supabase auth session (set after admin login)
+      pinAuthorized: false,   // True once PIN is verified on current session
+      loginAttempts: { count: 0 }, // Tracks failed login attempts (for rate limiting)
     };
 
-    const MODEL_URL = 'https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@0.22.2/weights';
-    const MATCH_THRESHOLD = 0.50;
-    const CONFIG_KEY = 'fa_config';
-    const LAST_PAGE_KEY = 'fa_last_page';
-    const LAST_TAB_KEY = 'fa_last_tab';
+    // ── CONSTANTS ──
+    const MODEL_URL       = 'https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@0.22.2/weights';
+    const MATCH_THRESHOLD = 0.50;        // Euclidean distance threshold for face recognition.
+                                         // Lower = stricter. 0.50 is a good balance.
+    const CONFIG_KEY      = 'fa_config'; // localStorage key for saved Supabase credentials
+    const LAST_PAGE_KEY   = 'fa_last_page'; // Remembers which page to reopen to after reload
+    const LAST_TAB_KEY    = 'fa_last_tab';  // Remembers which admin tab was last active
 
-    // ════════════════════════════════════════════════════════
-    //  INIT
-    // ════════════════════════════════════════════════════════
+    // ── SUPABASE CREDENTIALS (hardcoded for this project) ──
+    // In production you could load these from localStorage or a .env file.
     const HARDCODED_URL = 'https://kclfzetnbvwvlfnzolne.supabase.co';
     const HARDCODED_KEY = 'sb_publishable_5VcNGj_DtvPV28WPV1fTGw_WdywaxS_';
 
+    // ── EDGE FUNCTION URL ──
+    // Full URL to the check-ip Edge Function deployed on Supabase.
+    // This is called before every attendance insert to verify college network.
+    const IP_CHECK_URL = `${HARDCODED_URL}/functions/v1/check-ip`;
+
+    // ════════════════════════════════════════════════════════════════
+    //  INITIALISATION
+    //  Runs once when the HTML page finishes loading.
+    // ════════════════════════════════════════════════════════════════
     window.addEventListener('DOMContentLoaded', async () => {
+      // Set up Supabase client with hardcoded credentials
       S.config = { url: HARDCODED_URL, key: HARDCODED_KEY };
       initSupabase(S.config.url, S.config.key);
 
-      // PIN authorization is required on every reload.
+      // Show PIN wall first — user must enter PIN before seeing any data
       showPage('pin-wall');
 
+      // Start the live clock in the kiosk header
       updateClock();
-      setInterval(updateClock, 1000);
+      setInterval(updateClock, 1000); // Update every second
+
+      // Check if the date has changed since the last session
       checkNewDay();
     });
 
-    // Handle physical keyboard input
+    // Physical keyboard support for the PIN wall
+    // Lets lab PC users type the PIN on a real keyboard instead of clicking
     window.addEventListener('keydown', e => {
-      if (S.currentPage !== 'pin-wall') return;
+      if (S.currentPage !== 'pin-wall') return; // Only active on PIN screen
       if (e.key >= '0' && e.key <= '9') handlePinKey(e.key);
       if (e.key === 'Backspace') handlePinKey('del');
       if (e.key === 'Escape' || e.key === 'Delete') handlePinKey('clr');
     });
 
+    // Called after PIN is verified — decides which page to show
     async function proceedInit() {
-      // Check if already logged in via Supabase session
+      // Check if there is a valid Supabase auth session from a previous admin login
       const { data: { session } } = await S.sb.auth.getSession();
       S.adminSession = session;
 
+      // Restore last page/tab if admin was logged in previously
       const lastPage = localStorage.getItem(LAST_PAGE_KEY) || 'kiosk';
-      const lastTab = localStorage.getItem(LAST_TAB_KEY) || 'enroll';
+      const lastTab  = localStorage.getItem(LAST_TAB_KEY)  || 'enroll';
 
       if (S.adminSession && lastPage === 'admin') {
         showPage('admin');
         switchTab(lastTab);
       } else {
+        // Default: go to kiosk mode
         showPage('kiosk');
         startKiosk();
       }
     }
 
+    // Updates the live clock display in the kiosk header
     function updateClock() {
       const el = document.getElementById('kiosk-clock');
       if (el) el.textContent = new Date().toLocaleTimeString('en-IN', { hour12: false });
     }
 
-    // ════════════════════════════════════════════════════════
+    // ════════════════════════════════════════════════════════════════
     //  NEW DAY DETECTION
-    //  Triggers on: page load, tab re-focus, every 5 min
-    //  Works even when lab PC is shut down every night
-    // ════════════════════════════════════════════════════════
+    //  Clears the "already marked today" cache when the date changes.
+    //  Handles the lab PC being shut down at night and restarted next morning.
+    // ════════════════════════════════════════════════════════════════
     const LAST_DATE_KEY = 'fa_last_date';
 
+    // Returns today's date as "YYYY-MM-DD" in local timezone
     function todayStr() {
       const d = new Date();
-      d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+      d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); // Adjust for local timezone
       return d.toISOString().split('T')[0];
     }
 
     function checkNewDay() {
-      const last = localStorage.getItem(LAST_DATE_KEY);
+      const last  = localStorage.getItem(LAST_DATE_KEY);
       const today = todayStr();
-      if (last && last !== today) {
-        performNewDayReset(last, today);
-      }
-      localStorage.setItem(LAST_DATE_KEY, today);
+      if (last && last !== today) performNewDayReset(last, today); // Date changed!
+      localStorage.setItem(LAST_DATE_KEY, today);                  // Update stored date
     }
 
-    // When PC is turned on and browser tab gets focus next morning
+    // Re-check when user switches back to this browser tab
+    // (handles: PC slept overnight, tab left open, user returns next morning)
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible') checkNewDay();
     });
 
-    // Also check every 5 minutes in case the tab stays open
+    // Also check every 5 minutes for tabs that stay open overnight
     setInterval(checkNewDay, 5 * 60 * 1000);
 
+    // Performs all the cleanup needed at the start of a new day
     function performNewDayReset(prevDate, newDate) {
-      console.log(`[FaceAttend] ✦ New day: ${prevDate} → ${newDate}`);
+      console.log(`[SwiftAttend] New day: ${prevDate} -> ${newDate}`);
 
-      // 1. Clear recent attendance chips
+      // 1. Clear the "recently marked" chips from the bottom of kiosk
       recentNames.length = 0;
       const recentEl = document.getElementById('kiosk-recent');
       if (recentEl) recentEl.innerHTML = '';
 
-      // 2. Hide result card & clear stuck state
+      // 2. Hide any leftover result card from yesterday
       hideResultCard();
       S.kioskCooldown = false;
 
-      // 3. Clear in-memory duplicate cache for new day
+      // 3. Clear the in-memory "already marked today" cache
+      //    (so everyone can mark again today without DB conflicts)
       S.markedToday.clear();
 
-      // 4. Show good morning banner for 5s
+      // 4. Show "Good Morning" banner for 5 seconds
       const dateStr = new Date().toLocaleDateString('en-IN',
         { weekday: 'long', day: 'numeric', month: 'short' }).toUpperCase();
-      setKioskStatus(`✦ Good morning — ${dateStr}`, 'success');
+      setKioskStatus(`Good morning — ${dateStr}`, 'success');
       setTimeout(() => setKioskStatus('Ready — show your face', ''), 5000);
 
-      // 5. Reload fresh student list from DB
+      // 5. Reload fresh student list from DB (handles new enrollments from yesterday)
       loadStudents();
 
-      // 6. Brief screen flash to signal new day
+      // 6. Brief screen fade to signal new day has started
       document.body.style.transition = 'opacity .5s';
       document.body.style.opacity = '0.15';
       setTimeout(() => { document.body.style.opacity = '1'; }, 500);
     }
 
-    // ════════════════════════════════════════════════════════
-    //  NAVIGATION
-    // ════════════════════════════════════════════════════════
+    // ════════════════════════════════════════════════════════════════
+    //  NAVIGATION — switching between pages
+    // ════════════════════════════════════════════════════════════════
     function showPage(page) {
+      // Hide all pages first
       ['setup', 'kiosk', 'admin-login', 'admin', 'pin-wall'].forEach(p => {
         const el = document.getElementById(`page-${p}`);
-        if (el) el.style.display = 'none';
-        if (el && p === 'pin-wall') el.classList.remove('flex');
+        if (el) {
+          el.style.display = 'none';
+          if (p === 'pin-wall') el.classList.remove('flex');
+        }
       });
 
+      // Show the target page
       const target = document.getElementById(`page-${page}`);
       if (!target) return;
-      
+
+      // Some pages use flexbox layout, others use block
       const isFlex = ['kiosk', 'admin-login', 'admin', 'pin-wall'].includes(page);
       target.style.display = isFlex ? 'flex' : 'block';
+
+      // PIN wall needs .flex class for CSS animation triggers
       if (isFlex && page === 'pin-wall') target.classList.add('flex');
-      
+
       S.currentPage = page;
+
+      // Save last page to localStorage (except PIN wall — we never restore to it)
       if (page !== 'pin-wall') localStorage.setItem(LAST_PAGE_KEY, page);
 
+      // Stop kiosk camera if we're leaving kiosk
       if (page !== 'kiosk' && S.kioskStream) stopKiosk();
+
+      // Start kiosk camera when entering kiosk page
       if (page === 'kiosk') startKiosk();
+
+      // Admin page: start enroll camera and load fresh data
       if (page === 'admin') { startEnrollCamera(); loadStudents(true); loadMasterData(); }
+
+      // Stop enroll camera when leaving admin page
       if (page !== 'admin' && S.enrollStream) stopEnrollCamera();
     }
 
-    // ── PIN LOGIC ──
-    let pinBuffer = '';
-    // SHA-256 hash of '4321' to prevent visual discovery in open source.
+    // ════════════════════════════════════════════════════════════════
+    //  PIN SYSTEM
+    //  PIN is stored as a SHA-256 hash so the real PIN is not visible
+    //  in the source code. Hash of '4321':
+    //  fe2592b42a727e977f055947385b709cc82b16b9a87f88c6abf3900d65d0cdc3
+    // ════════════════════════════════════════════════════════════════
+    let pinBuffer = ''; // Stores digits typed so far (max 4)
     const PIN_HASH = 'fe2592b42a727e977f055947385b709cc82b16b9a87f88c6abf3900d65d0cdc3';
 
+    // Uses browser's built-in Web Crypto API to compute SHA-256 hash
     async function sha256(message) {
-      const msgBuffer = new TextEncoder().encode(message);
+      const msgBuffer  = new TextEncoder().encode(message);
       const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      // Convert raw bytes to lowercase hex string (e.g. "fe2592...")
+      return Array.from(new Uint8Array(hashBuffer))
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
     }
 
+    // Called when a PIN key is tapped or a keyboard key is pressed
     function handlePinKey(key) {
       if (key === 'del') {
-        pinBuffer = pinBuffer.slice(0, -1);
+        pinBuffer = pinBuffer.slice(0, -1);         // Remove last digit
       } else if (key === 'clr') {
-        pinBuffer = '';
+        pinBuffer = '';                              // Clear all digits
       } else if (pinBuffer.length < 4) {
-        pinBuffer += key;
+        pinBuffer += key;                           // Add digit (max 4)
       }
-      
-      updatePinDisplay();
-      
+      updatePinDisplay();                           // Refresh the dot indicators
       if (pinBuffer.length === 4) {
-        setTimeout(verifyPin, 150);
+        setTimeout(verifyPin, 150); // Small delay so last dot animates before check
       }
     }
 
+    // Updates the 4 dots to reflect how many digits have been typed
     function updatePinDisplay() {
       for (let i = 0; i < 4; i++) {
         const dot = document.getElementById(`dot-${i}`);
@@ -1548,87 +1166,90 @@ CREATE POLICY "Admin: Manage attendance" ON attendance FOR ALL TO authenticated 
       }
     }
 
+    // Checks if the typed PIN matches the stored hash
     async function verifyPin() {
       const inputHash = await sha256(pinBuffer);
+
       if (inputHash === PIN_HASH) {
+        // Correct PIN: play unlock animation then proceed
         S.pinAuthorized = true;
-        
-        const card = document.getElementById('pin-card');
-        card.classList.add('unlock-p-anim');
-        
-        setTimeout(() => {
-          proceedInit();
-        }, 400); 
+        document.getElementById('pin-card').classList.add('unlock-p-anim');
+        setTimeout(proceedInit, 400); // Wait for animation to finish
       } else {
+        // Wrong PIN: shake the card and reset
         const card = document.getElementById('pin-card');
         card.classList.add('shake');
         setTimeout(() => {
           card.classList.remove('shake');
-          pinBuffer = '';
-          updatePinDisplay();
+          pinBuffer = '';         // Clear buffer
+          updatePinDisplay();    // Reset dots
         }, 400);
       }
     }
 
+    // ════════════════════════════════════════════════════════════════
+    //  ADMIN LOGIN / LOGOUT
+    // ════════════════════════════════════════════════════════════════
+
+    // Checks if already logged in, otherwise shows login form
     async function goAdminLogin() {
-      // Check if session is still valid
       if (S.adminSession) {
         const { data: { session } } = await S.sb.auth.getSession();
-        if (session) {
-          showPage('admin');
-          return;
-        }
+        if (session) { showPage('admin'); return; } // Session still valid
       }
       showPage('admin-login');
     }
 
+    // Attempts Supabase email+password login
     async function checkAdminPass() {
       const email = document.getElementById('admin-email-input')?.value?.trim();
-      const pass = document.getElementById('admin-pass-input').value;
+      const pass  = document.getElementById('admin-pass-input').value;
 
       if (!email || !pass) { showAdminError('Enter email and password.'); return; }
-      if (!email.includes('@')) { showAdminError('Please enter a valid email address containing "@"'); return; }
+      if (!email.includes('@')) { showAdminError('Please enter a valid email address.'); return; }
 
+      // Disable button while verifying to prevent double-click
       const btn = document.querySelector('#page-admin-login .btn-primary');
       if (btn) { btn.disabled = true; btn.textContent = 'Verifying…'; }
 
       try {
+        // Call Supabase Auth API
         const { data, error } = await S.sb.auth.signInWithPassword({ email, password: pass });
 
         if (error || !data.session) {
-          showAdminError('Incorrect credentials. Please check your email and password.');
+          showAdminError('Incorrect credentials.');
           return;
         }
 
-        // Success
+        // Login successful
         S.loginAttempts.count = 0;
         S.adminSession = data.session;
-        document.getElementById('admin-pass-input').value = '';
-        if (email) document.getElementById('admin-email-input').value = '';
+        document.getElementById('admin-pass-input').value = '';   // Clear password field
+        document.getElementById('admin-email-input').value = '';  // Clear email field
         document.getElementById('admin-login-error').style.display = 'none';
         showPage('admin');
 
       } finally {
+        // Always re-enable button (even if an error occurred)
         if (btn) { btn.disabled = false; btn.textContent = 'Unlock Panel →'; }
       }
     }
 
+    // Toggles password input between visible text and masked dots
     function togglePass() {
       const inp = document.getElementById('admin-pass-input');
       const btn = inp.nextElementSibling;
-      if (inp.type === 'password') {
-        inp.type = 'text';
-        btn.style.opacity = '0.5'; // dimmed when showing text
-      } else {
-        inp.type = 'password';
-        btn.style.opacity = '1';
-      }
+      if (inp.type === 'password') { inp.type = 'text'; btn.style.opacity = '0.5'; }
+      else { inp.type = 'password'; btn.style.opacity = '1'; }
     }
 
+    // Signs out of Supabase and returns to kiosk mode
     async function adminSignOut() {
       if (!confirm('Are you sure you want to sign out?')) return;
       await S.sb.auth.signOut();
       S.adminSession = null;
+      localStorage.removeItem(LAST_PAGE_KEY); // Clear saved page so next load goes to kiosk
+      localStorage.removeItem(LAST_TAB_KEY);
       showPage('kiosk');
     }
 
@@ -1638,24 +1259,30 @@ CREATE POLICY "Admin: Manage attendance" ON attendance FOR ALL TO authenticated 
       err.style.display = 'block';
     }
 
+    // Switches between Enroll / Logs / Members tabs in the admin panel
     function switchTab(tab) {
       ['enroll', 'logs', 'students'].forEach(t => {
+        // Toggle active state on tab buttons
         document.getElementById(`tab-${t}`).classList.toggle('active', t === tab);
+        // Show/hide tab content panels
         document.getElementById(`tab-content-${t}`).classList.toggle('hidden', t !== tab);
       });
       S.currentTab = tab;
-      localStorage.setItem(LAST_TAB_KEY, tab);
+      localStorage.setItem(LAST_TAB_KEY, tab); // Remember for next reload
+
+      // Auto-load data when switching to these tabs
       if (tab === 'students') loadStudents(true);
       if (tab === 'logs') {
-        const today = todayStr();
-        document.getElementById('log-date').value = today;
+        document.getElementById('log-date').value = todayStr(); // Default to today
         loadLogs();
       }
     }
 
-    // ════════════════════════════════════════════════════════
+    // ════════════════════════════════════════════════════════════════
     //  SETUP & SUPABASE
-    // ════════════════════════════════════════════════════════
+    // ════════════════════════════════════════════════════════════════
+
+    // Copies the SQL setup script to clipboard
     function copySQL() {
       const text = document.getElementById('sql-block').innerText;
       navigator.clipboard.writeText(text).then(() => {
@@ -1665,13 +1292,13 @@ CREATE POLICY "Admin: Manage attendance" ON attendance FOR ALL TO authenticated 
       });
     }
 
+    // Tries to connect Supabase with user-entered credentials (manual setup page)
     async function connectSupabase() {
-      const url = document.getElementById('setup-url').value.trim();
-      const key = document.getElementById('setup-key').value.trim();
+      const url   = document.getElementById('setup-url').value.trim();
+      const key   = document.getElementById('setup-key').value.trim();
       const errEl = document.getElementById('setup-error');
-      const okEl = document.getElementById('setup-success');
-      errEl.style.display = 'none';
-      okEl.style.display = 'none';
+      const okEl  = document.getElementById('setup-success');
+      errEl.style.display = 'none'; okEl.style.display = 'none';
 
       if (!url || !key) { errEl.textContent = 'Please fill in URL and Key.'; errEl.style.display = 'block'; return; }
 
@@ -1680,16 +1307,18 @@ CREATE POLICY "Admin: Manage attendance" ON attendance FOR ALL TO authenticated 
 
       try {
         initSupabase(url, key);
-        // Test connection
+        // Test connection by fetching one row (fails if URL/key is wrong)
         const { error } = await S.sb.from('students').select('id').limit(1);
         if (error) throw error;
 
+        // Save credentials to localStorage so setup doesn't repeat
         S.config = { url, key };
         localStorage.setItem(CONFIG_KEY, JSON.stringify(S.config));
 
         okEl.textContent = '✓ Connected! Launching kiosk...';
         okEl.style.display = 'block';
         setTimeout(() => { showPage('kiosk'); startKiosk(); }, 1000);
+
       } catch (e) {
         errEl.textContent = 'Connection failed: ' + (e.message || e);
         errEl.style.display = 'block';
@@ -1697,19 +1326,13 @@ CREATE POLICY "Admin: Manage attendance" ON attendance FOR ALL TO authenticated 
       }
     }
 
+    // Creates the Supabase JS client and stores it in S.sb
     function initSupabase(url, key) {
       S.sb = supabase.createClient(url, key);
     }
 
-    async function adminSignOut() {
-      await S.sb.auth.signOut();
-      S.adminSession = null;
-      localStorage.removeItem(LAST_PAGE_KEY);
-      localStorage.removeItem(LAST_TAB_KEY);
-      showPage('kiosk');
-    }
-
-    // Input validation — descriptor must be 128-float array
+    // Validates a face descriptor array before saving to DB
+    // Ensures it is exactly 128 numbers (the format face-api.js produces)
     function validateDescriptor(d) {
       if (!d || d.length !== 128) throw new Error('Invalid face descriptor');
       for (const v of d) {
@@ -1718,22 +1341,29 @@ CREATE POLICY "Admin: Manage attendance" ON attendance FOR ALL TO authenticated 
       return true;
     }
 
-    // ════════════════════════════════════════════════════════
-    //  FACE API — Model Loading
-    // ════════════════════════════════════════════════════════
-    let modelsPromise = null;
+    // ════════════════════════════════════════════════════════════════
+    //  FACE API — MODEL LOADING
+    //  face-api.js needs 3 model files downloaded before it can detect faces.
+    //  We use a singleton promise so models only load once even if called
+    //  multiple times (e.g. kiosk + enroll camera both calling ensureModels).
+    // ════════════════════════════════════════════════════════════════
+    let modelsPromise = null; // Singleton — set once, reused forever
 
     function ensureModels() {
-      if (modelsPromise) return modelsPromise;
+      if (modelsPromise) return modelsPromise; // Already loading/loaded
       modelsPromise = (async () => {
         setKioskStatus('Loading AI models…', 'scanning');
-        setModelTag(false);
+        setModelTag(false); // Show "Loading AI..." badge
         try {
+          // These three models are needed together:
+          // 1. tinyFaceDetector     → finds face bounding boxes in video frames
+          // 2. faceLandmark68Tiny   → finds 68 key points on the face
+          // 3. faceRecognitionNet   → converts the face into a 128-number descriptor
           await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
           await faceapi.nets.faceLandmark68TinyNet.loadFromUri(MODEL_URL);
           await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
           S.modelsLoaded = true;
-          setModelTag(true);
+          setModelTag(true); // Show "AI Ready" badge
         } catch (e) {
           console.error('Model load error', e);
           setKioskStatus('Model load failed — reload page', 'error');
@@ -1742,6 +1372,7 @@ CREATE POLICY "Admin: Manage attendance" ON attendance FOR ALL TO authenticated 
       return modelsPromise;
     }
 
+    // Updates the AI status badge in the kiosk header
     function setModelTag(ready) {
       const el = document.getElementById('model-status');
       if (!el) return;
@@ -1754,16 +1385,20 @@ CREATE POLICY "Admin: Manage attendance" ON attendance FOR ALL TO authenticated 
       }
     }
 
-    // ════════════════════════════════════════════════════════
-    //  KIOSK
-    // ════════════════════════════════════════════════════════
+    // ════════════════════════════════════════════════════════════════
+    //  KIOSK — Camera + Scan Loop
+    // ════════════════════════════════════════════════════════════════
     async function startKiosk() {
       if (!S.sb) return;
+
+      // Load students from DB into memory (needed for face matching)
       await loadStudents();
 
-      // Start camera
+      // Request webcam access from the browser
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: 640, height: 480 } });
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'user', width: 640, height: 480 }
+        });
         S.kioskStream = stream;
         const vid = document.getElementById('kiosk-video');
         vid.srcObject = stream;
@@ -1774,117 +1409,207 @@ CREATE POLICY "Admin: Manage attendance" ON attendance FOR ALL TO authenticated 
       }
 
       setKioskStatus('Initialising scanner…', 'scanning');
-      await ensureModels();
-
+      await ensureModels(); // Download AI models if not already loaded
       if (!S.modelsLoaded) return;
       setKioskStatus('Ready — show your face', '');
 
-      // Scan loop: rAF keeps the next tick synced to the GPU render cycle;
-      // 150ms gap prevents CPU thrashing on weak/mobile devices while still
-      // feeling instant to the user (face is confirmed within one blink).
+      // ── SCAN LOOP ──
+      // Uses requestAnimationFrame (synced to screen refresh) + 150ms delay.
+      // 150ms = ~6 checks per second, which feels instant to the user
+      // but doesn't overload the CPU on older lab PCs.
       async function kioskLoop() {
-        if (!S.kioskStream) return;
-        await kioskTick();
+        if (!S.kioskStream) return; // Stop if camera was turned off
+        await kioskTick();          // Do one face detection + matching
         S.kioskScanTimer = setTimeout(
           () => requestAnimationFrame(kioskLoop),
-          150
+          150 // Wait 150ms before next scan
         );
       }
-      kioskLoop();
+      kioskLoop(); // Start the loop
     }
 
+    // Stops the kiosk camera and clears the scan loop timer
     function stopKiosk() {
       clearTimeout(S.kioskScanTimer);
       S.kioskScanTimer = null;
-      if (S.kioskStream) { S.kioskStream.getTracks().forEach(t => t.stop()); S.kioskStream = null; }
+      if (S.kioskStream) {
+        S.kioskStream.getTracks().forEach(t => t.stop()); // Release webcam
+        S.kioskStream = null;
+      }
     }
 
+    // One iteration of the face scan loop
     async function kioskTick() {
-      if (!S.modelsLoaded || S.kioskCooldown) return;
+      if (!S.modelsLoaded || S.kioskCooldown) return; // Skip if cooling down after a match
       if (S.students.length === 0) { setKioskStatus('No members enrolled', 'warn'); return; }
+
       try {
         const vid = document.getElementById('kiosk-video');
-        if (!vid || vid.readyState < 2) return;
+        if (!vid || vid.readyState < 2) return; // Video not ready yet
 
-        // Reduced inputSize from 224 to 160 (smallest valid size, fastest).
-        // (inputSize must be divisible by 32, e.g., 160, 224, 320, 416)
+        // inputSize: smaller = faster but less accurate. 160 is the minimum valid size.
+        // (must be divisible by 32: 160, 224, 320, 416...)
         const opts = new faceapi.TinyFaceDetectorOptions({ inputSize: 160, scoreThreshold: 0.45 });
-        const det = await faceapi.detectSingleFace(vid, opts).withFaceLandmarks(true).withFaceDescriptor();
+
+        // detectSingleFace: looks for one face, then gets landmarks + 128-d descriptor
+        const det = await faceapi
+          .detectSingleFace(vid, opts)
+          .withFaceLandmarks(true)
+          .withFaceDescriptor();
 
         if (!det) {
+          // No face in frame
           setKioskStatus('Ready — show your face', '');
           hideResultCard();
           return;
         }
 
+        // Try to match detected face against enrolled students
         const match = findBestMatch(det.descriptor);
+
         if (match) {
-          await handleAttendance(match);
+          await handleAttendance(match); // Found a match — try to mark attendance
         } else {
           setKioskStatus('Face not recognised', 'error');
           hideResultCard();
-          setCooldown(2000);
+          setCooldown(2000); // Wait 2s before scanning again
         }
       } catch (e) {
         console.error('Scan error', e);
       }
     }
 
+    // ════════════════════════════════════════════════════════════════
+    //  HANDLE ATTENDANCE — with IP check
+    //
+    //  Flow:
+    //    1. Check if already marked today (fast, in-memory)
+    //    2. Call Edge Function to verify college network (server-side IP check)
+    //    3. If allowed: insert attendance record into Supabase
+    //    4. Show success/warning feedback to the user
+    // ════════════════════════════════════════════════════════════════
     async function handleAttendance(student) {
-      const today = todayStr();
-      const timeNow = new Date().toTimeString().substring(0, 8);
+      const today   = todayStr();
+      const timeNow = new Date().toTimeString().substring(0, 8); // "HH:MM:SS"
 
-      // ── Fast path: already marked in memory — no DB round-trip needed ──
+      // ── Step 1: Fast in-memory check ──
+      // If this student already marked attendance today (on this device),
+      // we know without hitting the DB. Much faster.
       if (S.markedToday.has(student.id)) {
-        setKioskStatus(`Already marked today`, 'warn');
-        showResultCard(student, `Already marked today`, false);
+        setKioskStatus('Already marked today', 'warn');
+        showResultCard(student, 'Already marked today', false);
         setCooldown(1500);
         return;
       }
 
-      // ── Insert attendance record ──
+      // ── Step 2: Network / IP check via Edge Function ──
+      // We call the Supabase Edge Function which runs on the SERVER.
+      // The server reads the client's IP from the request headers.
+      // Because this check runs server-side, the browser CANNOT spoof it.
+      //
+      // If the student is NOT on the college network, the Edge Function
+      // returns HTTP 403 and we block the attendance insert entirely.
+      setKioskStatus('Checking network…', 'scanning');
+      try {
+        const ipRes = await fetch(IP_CHECK_URL, {
+          method: 'GET',
+          headers: {
+            // Supabase requires the API key in the Authorization header
+            // for Edge Function calls
+            'Authorization': `Bearer ${HARDCODED_KEY}`,
+            'apikey': HARDCODED_KEY,
+          },
+        });
+
+        if (!ipRes.ok) {
+          // Edge Function returned 403 — student is NOT on college network
+          setKioskStatus('Not on college network', 'error');
+          showResultCard(student, 'Must be on college WiFi to mark attendance', false);
+          setCooldown(4000); // Longer cooldown to let student read the message
+          return;
+        }
+        // ipRes.ok = true means HTTP 200 — student IS on college network, proceed
+
+      } catch (e) {
+        // Network error: Edge Function could not be reached at all
+        // (e.g. no internet connection, Supabase down)
+        setKioskStatus('Network check failed — try again', 'error');
+        setCooldown(2000);
+        return;
+      }
+
+      // ── Step 3: Insert attendance record into Supabase ──
+      // Only reached if the IP check passed above.
       const { error } = await S.sb.from('attendance').insert({
-        student_id: student.id, date: today, time_in: timeNow
+        student_id: student.id,
+        date:       today,
+        time_in:    timeNow,
       });
 
       if (error) {
-        // Unique constraint violation → already in DB (e.g. marked on another device)
         if (error.code === '23505') {
-          S.markedToday.add(student.id); // sync cache
-          setKioskStatus(`Already marked today`, 'warn');
-          showResultCard(student, `Already marked today`, false);
+          // PostgreSQL unique constraint violation:
+          // student already has an attendance row for today
+          // (must have been marked on a different device/session)
+          S.markedToday.add(student.id); // Sync the in-memory cache
+          setKioskStatus('Already marked today', 'warn');
+          showResultCard(student, 'Already marked today', false);
           setCooldown(1500);
         } else {
+          // Some other DB error (permissions, network, etc.)
           setKioskStatus('DB Error — try again', 'error');
         }
         return;
       }
 
-      // ── Success ──
-      S.markedToday.add(student.id); // cache so next scan is instant
-      setKioskStatus('✓ Attendance marked!', 'success');
+      // ── Step 4: Success ──
+      S.markedToday.add(student.id); // Cache so next scan is instant (no DB check needed)
+      setKioskStatus('Attendance marked!', 'success');
       showResultCard(student, `${student.department || 'Swift Club'} • ${timeNow}`, true);
-      flashCamera();
-      playPing();
-      addRecentChip(student.name);
-      setCooldown(2000);
+      flashCamera();           // Green flash on the viewfinder
+      playPing();              // Beep sound + notification banner
+      addRecentChip(student.name); // Add to bottom strip
+      setCooldown(2000);       // 2s pause before scanning again
     }
 
+    // ════════════════════════════════════════════════════════════════
+    //  FACE MATCHING
+    //  Compares a detected face descriptor against all enrolled students.
+    //  Uses Euclidean distance: smaller distance = more similar face.
+    //  Returns the student if the best match is within the threshold.
+    // ════════════════════════════════════════════════════════════════
     function findBestMatch(descriptor) {
-      // Validate incoming descriptor
       if (!descriptor || descriptor.length !== 128) return null;
 
-      let bestId = null, bestDist = Infinity;
-      // Use pre-converted Float32Array cache — no per-frame allocation
+      let bestId   = null;
+      let bestDist = Infinity; // Start with "infinitely bad" match
+
+      // S.descriptorCache holds pre-converted Float32Arrays (faster than converting each frame)
       for (const { id, vec } of S.descriptorCache) {
         if (vec.length !== 128) continue;
+
+        // Euclidean distance between two 128-d vectors
+        // = sqrt(sum of squared differences per dimension)
+        // face-api.js provides this helper function
         const dist = faceapi.euclideanDistance(descriptor, vec);
-        if (dist < bestDist) { bestDist = dist; bestId = id; }
+
+        if (dist < bestDist) {
+          bestDist = dist;
+          bestId   = id;
+        }
       }
+
+      // Only accept the match if distance is below our threshold
+      // (0.50 means faces must be 50% "close" — tune this if needed)
       if (bestDist >= MATCH_THRESHOLD) return null;
+
+      // Return the full student object for the best match
       return S.students.find(st => st.id === bestId) || null;
     }
 
+    // ── COOLDOWN ──
+    // Prevents the scan loop from triggering multiple times for the same face.
+    // After a recognition (success or fail), we pause for `ms` milliseconds.
     function setCooldown(ms) {
       S.kioskCooldown = true;
       setTimeout(() => {
@@ -1894,95 +1619,132 @@ CREATE POLICY "Admin: Manage attendance" ON attendance FOR ALL TO authenticated 
       }, ms);
     }
 
+    // ── UI HELPERS ──
+
+    // Updates the status pill text and color class
     function setKioskStatus(text, type) {
       const pill = document.getElementById('kiosk-status-pill');
-      const txt = document.getElementById('kiosk-status-text');
+      const txt  = document.getElementById('kiosk-status-text');
       if (!pill || !txt) return;
       txt.textContent = text;
+      // type can be: 'scanning' | 'success' | 'error' | 'warn' | '' (default)
       pill.className = 'status-pill' + (type ? ' ' + type : '');
     }
 
+    // Shows the result card below the camera with student info
     function showResultCard(student, detail, success) {
       const card = document.getElementById('kiosk-result-card');
-      document.getElementById('kiosk-result-name').textContent = student.name;
+      document.getElementById('kiosk-result-name').textContent   = student.name;
       document.getElementById('kiosk-result-detail').textContent = `${student.enrollment_no} • ${detail}`;
+      // success=true → green border, success=false → yellow border
       card.className = 'kiosk-result-card show' + (!success ? ' warn-state' : '');
     }
 
+    // Hides the result card
     function hideResultCard() {
       document.getElementById('kiosk-result-card').classList.remove('show', 'warn-state');
     }
 
+    // Brief green flash overlay on the camera viewfinder (visual feedback)
     function flashCamera() {
       const flash = document.getElementById('cam-flash');
       if (!flash) return;
       flash.classList.add('active');
-      setTimeout(() => flash.classList.remove('active'), 400);
+      setTimeout(() => flash.classList.remove('active'), 400); // Flash for 400ms
     }
 
+    // Plays a short descending "ping" tone using the Web Audio API
+    // Also shows the "🔔 Attendance marked" banner for 1.8 seconds
     function playPing() {
       try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.connect(gain); gain.connect(ctx.destination);
+        const ctx  = new (window.AudioContext || window.webkitAudioContext)();
+        const osc  = ctx.createOscillator();  // Sound generator
+        const gain = ctx.createGain();         // Volume control
+        osc.connect(gain);
+        gain.connect(ctx.destination);         // Connect to speakers
+
+        // Pitch: starts at 880Hz (A5), descends to 660Hz (E5) over 120ms
         osc.frequency.setValueAtTime(880, ctx.currentTime);
         osc.frequency.exponentialRampToValueAtTime(660, ctx.currentTime + 0.12);
+
+        // Volume: starts at 0.18 (quiet), fades to near-zero over 350ms
         gain.gain.setValueAtTime(0.18, ctx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
-        osc.type = 'sine';
+
+        osc.type = 'sine'; // Smooth sine wave tone
         osc.start(ctx.currentTime);
         osc.stop(ctx.currentTime + 0.35);
+
+        // Show notification banner
         const sf = document.getElementById('sound-flash');
-        if (sf) { sf.classList.add('show'); setTimeout(() => sf.classList.remove('show'), 1800); }
-      } catch (e) {}
+        if (sf) {
+          sf.classList.add('show');
+          setTimeout(() => sf.classList.remove('show'), 1800);
+        }
+      } catch (e) {
+        // Audio may fail silently if browser policy blocks it — that's fine
+      }
     }
 
-    const recentNames = [];
+    // ── RECENT CHIPS ──
+    // Bottom strip showing the last 5 students who marked attendance today
+    const recentNames = []; // Stores name strings in order (newest first)
+
     function addRecentChip(name) {
-      recentNames.unshift(name);
-      if (recentNames.length > 5) recentNames.pop();
+      recentNames.unshift(name);            // Add to front
+      if (recentNames.length > 5) recentNames.pop(); // Keep max 5
       renderRecentChips();
     }
 
     function removeRecentChip(name) {
       const idx = recentNames.indexOf(name);
-      if (idx > -1) {
-        recentNames.splice(idx, 1);
-        renderRecentChips();
-      }
+      if (idx > -1) { recentNames.splice(idx, 1); renderRecentChips(); }
     }
 
+    // Rebuilds the DOM from the recentNames array
     function renderRecentChips() {
       const el = document.getElementById('kiosk-recent');
       if (!el) return;
       el.innerHTML = recentNames.map(n => `<div class="recent-chip">✓ ${n}</div>`).join('');
     }
 
-    // ════════════════════════════════════════════════════════
-    //  MASTER DATA — Autocomplete
-    // ════════════════════════════════════════════════════════
+    // ════════════════════════════════════════════════════════════════
+    //  MASTER DATA — Autocomplete in Enroll Wizard
+    //  Loads all rows from students_master table (a pre-populated list
+    //  of all college students) and caches them for the enrollment search.
+    // ════════════════════════════════════════════════════════════════
     async function loadMasterData() {
       if (!S.sb) return;
-      const { data, error } = await S.sb.from('students_master').select('*').order('enrollment_no');
-      if (!error && data) S.masterData = data;
+      const { data, error } = await S.sb
+        .from('students_master')
+        .select('*')
+        .order('enrollment_no');
+      if (!error && data) S.masterData = data; // Cache in memory for fast search
     }
 
-    let acHighlight = -1;
+    let acHighlight = -1; // Index of the currently highlighted autocomplete item (-1 = none)
 
+    // Called on every keypress in the enrollment number input
     function filterEnrollment(query) {
       const dropdown = document.getElementById('enroll-ac');
       acHighlight = -1;
-      if (!query || query.length < 1) { dropdown.classList.remove('open'); return; }
+
+      if (!query || query.length < 1) {
+        dropdown.classList.remove('open'); // Hide dropdown if input is empty
+        return;
+      }
 
       const q = query.toLowerCase();
+
+      // Filter masterData by enrollment number OR student name
       const matches = S.masterData.filter(m =>
         m.enrollment_no.toLowerCase().includes(q) ||
         (m.name && m.name.toLowerCase().includes(q))
-      ).slice(0, 8);
+      ).slice(0, 8); // Show max 8 results
 
       if (!matches.length) { dropdown.classList.remove('open'); return; }
 
+      // Build dropdown HTML
       dropdown.innerHTML = matches.map((m, i) => `
         <div class="ac-item" data-idx="${i}" onmousedown="pickMaster(${i})">
           <span class="ac-item-enr">${esc(m.enrollment_no)}</span>
@@ -1990,123 +1752,151 @@ CREATE POLICY "Admin: Manage attendance" ON attendance FOR ALL TO authenticated 
           <span class="ac-item-meta">${[m.collage, m.department, m.branch].filter(Boolean).map(esc).join(' · ')}</span>
         </div>
       `).join('');
-      dropdown._matches = matches;
+
+      dropdown._matches = matches; // Store for pickMaster() to reference
       dropdown.classList.add('open');
     }
 
+    // Handles arrow key navigation and Enter/Escape in the autocomplete dropdown
     function acKeyNav(e) {
       const dropdown = document.getElementById('enroll-ac');
-      const items = dropdown.querySelectorAll('.ac-item');
+      const items    = dropdown.querySelectorAll('.ac-item');
       if (!dropdown.classList.contains('open') || !items.length) return;
+
       if (e.key === 'ArrowDown') {
         e.preventDefault();
-        acHighlight = Math.min(acHighlight + 1, items.length - 1);
+        acHighlight = Math.min(acHighlight + 1, items.length - 1); // Move down
       } else if (e.key === 'ArrowUp') {
         e.preventDefault();
-        acHighlight = Math.max(acHighlight - 1, 0);
+        acHighlight = Math.max(acHighlight - 1, 0); // Move up
       } else if (e.key === 'Enter' && acHighlight >= 0) {
         e.preventDefault();
-        pickMaster(acHighlight);
+        pickMaster(acHighlight); // Select current item
         return;
       } else if (e.key === 'Escape') {
-        dropdown.classList.remove('open');
+        dropdown.classList.remove('open'); // Close dropdown
         return;
       }
+
+      // Update visual highlight
       items.forEach((el, i) => el.classList.toggle('highlighted', i === acHighlight));
       if (acHighlight >= 0) items[acHighlight].scrollIntoView({ block: 'nearest' });
     }
 
+    // Called when user clicks or presses Enter on an autocomplete item
     function pickMaster(idx) {
       const dropdown = document.getElementById('enroll-ac');
-      const m = dropdown._matches?.[idx];
+      const m        = dropdown._matches?.[idx];
       if (!m) return;
+
       document.getElementById('enroll-enrollment').value = m.enrollment_no;
       dropdown.classList.remove('open');
-      
-      // Check if already enrolled
+
+      // Check if student is already enrolled (to prevent duplicates)
       if (S.students.some(s => s.enrollment_no.toLowerCase() === m.enrollment_no.toLowerCase())) {
         const errEl = document.getElementById('wstep-1-err');
-        errEl.textContent = `❌ ${m.name || m.enrollment_no} is already enrolled in the system.`;
+        errEl.textContent = `${m.name || m.enrollment_no} is already enrolled in the system.`;
         errEl.style.display = 'block';
         return;
       }
-      
-      // Advance to step 2 with this student
+
+      // Advance wizard to step 2 with this student's data
       goWizardStep2(m);
     }
 
-    // ── Wizard Navigation ──
+    // ════════════════════════════════════════════════════════════════
+    //  ENROLL WIZARD NAVIGATION
+    //  3 steps: Search → Confirm → Face Capture
+    // ════════════════════════════════════════════════════════════════
+
+    // Updates wizard step indicators and shows the correct step panel
     function goWizardStep(n) {
-      [1,2,3].forEach(i => {
+      [1, 2, 3].forEach(i => {
+        // Show/hide each wizard step panel
         document.getElementById(`wstep-${i}`)?.classList.toggle('active', i === n);
+
+        // Update step dot: done (green) | active (orange) | pending (grey)
         const dot = document.getElementById(`sdot-${i}`);
         const lbl = document.getElementById(`slbl-${i}`);
         if (dot) dot.className = 'step-dot' + (i < n ? ' done' : i === n ? ' active' : '');
         if (lbl) lbl.className = 'step-label' + (i < n ? ' done' : i === n ? ' active' : '');
+
+        // Update connecting line between dots: green if step is done
         const line = document.getElementById(`sline-${i}`);
         if (line) line.className = 'step-line' + (i < n ? ' done' : '');
       });
     }
 
+    // Builds the HTML for the student info preview card in the wizard
     function buildPreview(m) {
       const rows = [
         ['Enrollment No', `<span class="preview-enr">${esc(m.enrollment_no)}</span>`],
         ['Full Name',     `<span class="preview-name">${esc(m.name || '—')}</span>`],
-        ['College',       esc(m.collage     || '—')],
-        ['Department',    esc(m.department  || '—')],
-        ['Branch',        esc(m.branch      || '—')],
-        ['PU Mail',       esc(m.pu_mail     || '—')],
-        ['Phone',         esc(m.phone       || '—')],
+        ['College',       esc(m.collage    || '—')],
+        ['Department',    esc(m.department || '—')],
+        ['Branch',        esc(m.branch     || '—')],
+        ['PU Mail',       esc(m.pu_mail    || '—')],
+        ['Phone',         esc(m.phone      || '—')],
       ];
-      return rows.map(([k,v]) =>
+      return rows.map(([k, v]) =>
         `<div class="preview-row"><span class="preview-key">${k}</span><span class="preview-val">${v}</span></div>`
       ).join('');
     }
 
+    // Moves wizard to step 2 with the selected student's data
     function goWizardStep2(m) {
-      S.wizardStudent = m;
-      document.getElementById('student-preview').innerHTML  = buildPreview(m);
+      S.wizardStudent = m; // Save for use in step 3 (saveStudent)
+      // Populate both preview cards (step 2 and step 3 side panel)
+      document.getElementById('student-preview').innerHTML   = buildPreview(m);
       document.getElementById('student-preview-2').innerHTML = buildPreview(m);
       goWizardStep(2);
     }
 
+    // Called when admin clicks "Search →" manually (without autocomplete)
     async function wizardLookup() {
-      const enr = document.getElementById('enroll-enrollment').value.trim();
+      const enr   = document.getElementById('enroll-enrollment').value.trim();
       const errEl = document.getElementById('wstep-1-err');
       errEl.style.display = 'none';
+
       if (!enr) { errEl.textContent = 'Please enter an enrollment number.'; errEl.style.display = 'block'; return; }
 
-      // Check if already enrolled in the app first
+      // Prevent enrolling someone already in the system
       if (S.students.some(s => s.enrollment_no.toLowerCase() === enr.toLowerCase())) {
-        errEl.textContent = `❌ ${enr} is already enrolled in the system.`;
+        errEl.textContent = `${enr} is already enrolled in the system.`;
         errEl.style.display = 'block';
         return;
       }
 
-      // Try from cached masterData first
+      // Check cached master data first (fast, no network)
       const local = S.masterData.find(m => m.enrollment_no.toLowerCase() === enr.toLowerCase());
       if (local) { goWizardStep2(local); return; }
 
-      // Fallback: fetch from DB
-      const { data, error } = await S.sb.from('students_master')
-        .select('*').eq('enrollment_no', enr).single();
+      // Fallback: query database directly
+      const { data, error } = await S.sb
+        .from('students_master')
+        .select('*')
+        .eq('enrollment_no', enr)
+        .single();
+
       if (error || !data) {
-        errEl.textContent = `❌ Enrollment number "${esc(enr)}" not found in master database.`;
+        errEl.textContent = `Enrollment number "${esc(enr)}" not found in master database.`;
         errEl.style.display = 'block';
         return;
       }
       goWizardStep2(data);
     }
 
+    // Step 2 → Step 3: confirmed, now capture face
     function wizardConfirm() {
       if (!S.wizardStudent) return;
       goWizardStep(3);
-      startEnrollCamera();
+      startEnrollCamera(); // Start admin camera for face capture
     }
 
+    // Resets the entire wizard back to step 1 (clears all state)
     function wizardReset() {
-      S.wizardStudent = null;
-      S.capturedDescriptor = null;
+      S.wizardStudent       = null;
+      S.capturedDescriptor  = null;
       document.getElementById('enroll-enrollment').value = '';
       document.getElementById('wstep-1-err').style.display = 'none';
       document.getElementById('face-dot').className = 'face-status-dot';
@@ -2117,50 +1907,60 @@ CREATE POLICY "Admin: Manage attendance" ON attendance FOR ALL TO authenticated 
       goWizardStep(1);
     }
 
+    // Go back from step 3 to step 2
     function wizardBack() { goWizardStep(2); }
 
-    // Close dropdown on outside click
+    // Close autocomplete dropdown when user clicks anywhere else
     document.addEventListener('click', e => {
       if (!e.target.closest('.ac-wrap')) {
         document.getElementById('enroll-ac')?.classList.remove('open');
       }
     });
 
-    // Clear autofill styling when enrollment is manually edited
+    // Reset autofill styling if user manually edits the enrollment field
     document.addEventListener('input', e => {
       if (e.target.id === 'enroll-enrollment') {
-        ['enroll-name','enroll-pumail','enroll-phone','enroll-collage','enroll-branch']
+        ['enroll-name', 'enroll-pumail', 'enroll-phone', 'enroll-collage', 'enroll-branch']
           .forEach(id => document.getElementById(id)?.classList.remove('autofilled'));
         document.getElementById('autofill-badge')?.classList.remove('show');
       }
     });
 
-    // ════════════════════════════════════════════════════════
-    //  ENROLLMENT — Capture Face
-    // ════════════════════════════════════════════════════════
+    // ════════════════════════════════════════════════════════════════
+    //  ENROLLMENT — Face Capture
+    // ════════════════════════════════════════════════════════════════
+
+    // Starts the admin panel webcam for face capture in the enroll wizard
     async function startEnrollCamera() {
-      stopEnrollCamera();
+      stopEnrollCamera(); // Stop any existing stream first to avoid conflicts
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: 640, height: 480 } });
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'user', width: 640, height: 480 }
+        });
         S.enrollStream = stream;
         const vid = document.getElementById('enroll-video');
         vid.srcObject = stream;
         await vid.play();
         const ov = document.getElementById('enroll-overlay');
-        if (ov) ov.style.display = 'none';
-        await ensureModels();
+        if (ov) ov.style.display = 'none'; // Hide "Camera will start here" placeholder
+        await ensureModels(); // Make sure AI models are loaded
       } catch (e) {
         const ov = document.getElementById('enroll-overlay');
         if (ov) ov.textContent = 'Camera access denied';
       }
     }
 
+    // Stops and releases the enroll camera stream
     function stopEnrollCamera() {
-      if (S.enrollStream) { S.enrollStream.getTracks().forEach(t => t.stop()); S.enrollStream = null; }
+      if (S.enrollStream) {
+        S.enrollStream.getTracks().forEach(t => t.stop());
+        S.enrollStream = null;
+      }
     }
 
+    // Captures a face from the current video frame and stores the descriptor
     async function captureEnrollFace() {
-      if (!S.modelsLoaded) { alert('AI models still loading. Please wait a moment.'); return; }
+      if (!S.modelsLoaded) { alert('AI models still loading. Please wait.'); return; }
       const vid = document.getElementById('enroll-video');
       if (!vid || !S.enrollStream) { alert('Camera not started. Click ⟳ Camera first.'); return; }
 
@@ -2169,57 +1969,64 @@ CREATE POLICY "Admin: Manage attendance" ON attendance FOR ALL TO authenticated 
       txt.textContent = 'Detecting face…';
 
       try {
+        // Use higher inputSize (416) for enrollment — accuracy matters more than speed here
         const opts = new faceapi.TinyFaceDetectorOptions({ inputSize: 416, scoreThreshold: 0.4 });
-        const det = await faceapi.detectSingleFace(vid, opts).withFaceLandmarks(true).withFaceDescriptor();
+        const det  = await faceapi
+          .detectSingleFace(vid, opts)
+          .withFaceLandmarks(true)
+          .withFaceDescriptor();
 
         if (!det) {
-          dot.className = 'face-status-dot bad';
+          dot.className   = 'face-status-dot bad';
           txt.textContent = 'No face detected. Try again.';
           S.capturedDescriptor = null;
           return;
         }
 
-        // Check if face is already registered
+        // Check if this face is ALREADY enrolled (prevent duplicate registrations)
         const match = findBestMatch(det.descriptor);
         if (match) {
-          dot.className = 'face-status-dot bad';
-          txt.textContent = `❌ Face already registered to ${match.name}`;
+          dot.className   = 'face-status-dot bad';
+          txt.textContent = `Face already registered to ${match.name}`;
           S.capturedDescriptor = null;
           return;
         }
 
+        // Store the descriptor for use in saveStudent()
         S.capturedDescriptor = det.descriptor;
-        dot.className = 'face-status-dot ok';
+        dot.className   = 'face-status-dot ok'; // Green dot
         txt.textContent = `Face captured! (confidence: ${(det.detection.score * 100).toFixed(0)}%)`;
+
       } catch (e) {
         txt.textContent = 'Detection error: ' + e.message;
       }
     }
 
-    // ════════════════════════════════════════════════════════
-    //  ENROLLMENT — Save Student
-    // ════════════════════════════════════════════════════════
+    // ════════════════════════════════════════════════════════════════
+    //  ENROLLMENT — Save Student to Database
+    // ════════════════════════════════════════════════════════════════
     async function saveStudent() {
-      if (!S.wizardStudent) { return; }
-      const m   = S.wizardStudent;
+      if (!S.wizardStudent) return;
+      const m   = S.wizardStudent; // The student data from step 1
       const msg = document.getElementById('enroll-msg');
 
       if (!S.capturedDescriptor) { showMsg('Please capture face first.', false); return; }
 
-      // Convert Float32Array to plain array for JSON storage
+      // Convert Float32Array to plain JS array for JSON storage in Supabase (JSONB column)
       const descriptorArr = Array.from(S.capturedDescriptor);
       try { validateDescriptor(descriptorArr); }
       catch (e) { showMsg('Face data invalid. Re-capture.', false); return; }
 
+      // Insert new student row into the students table
       const { error } = await S.sb.from('students').insert({
-        enrollment_no: m.enrollment_no,
-        name:          m.name,
-        pu_mail:       m.pu_mail,
-        phone:         m.phone,
-        collage:       m.collage,
-        department:    m.department,
-        branch:        m.branch,
-        face_descriptor: descriptorArr
+        enrollment_no:   m.enrollment_no,
+        name:            m.name,
+        pu_mail:         m.pu_mail,
+        phone:           m.phone,
+        collage:         m.collage,
+        department:      m.department,
+        branch:          m.branch,
+        face_descriptor: descriptorArr, // The 128-number face vector stored as JSONB
       });
 
       if (error) {
@@ -2228,80 +2035,104 @@ CREATE POLICY "Admin: Manage attendance" ON attendance FOR ALL TO authenticated 
       }
 
       showMsg(`✓ ${m.name} enrolled successfully!`, true);
-      loadStudents();
-      // Auto-reset wizard after 2s
+      loadStudents(); // Refresh in-memory student list + descriptor cache
+
+      // Auto-reset wizard after 2 seconds so admin can enroll the next student
       setTimeout(() => wizardReset(), 2000);
 
+      // Inner helper: shows the success/error message below the enroll button
       function showMsg(text, ok) {
         msg.textContent = text;
-        msg.className = ok ? 'ok' : 'err';
+        msg.className   = ok ? 'ok' : 'err'; // CSS classes toggle visibility + color
       }
     }
 
-    // ════════════════════════════════════════════════════════
-    //  STUDENTS
-    // ════════════════════════════════════════════════════════
+    // ════════════════════════════════════════════════════════════════
+    //  STUDENTS — Load + Display
+    // ════════════════════════════════════════════════════════════════
     async function loadStudents(full = false) {
       if (!S.sb) return;
+
+      // When full=false (kiosk mode): only fetch columns needed for face matching
+      // When full=true (admin panel): fetch all columns to display in the grid
       const columns = full ? '*' : 'id, name, enrollment_no, department, face_descriptor';
-      const { data, error } = await S.sb.from('students').select(columns).order('created_at');
+
+      const { data, error } = await S.sb
+        .from('students')
+        .select(columns)
+        .order('created_at');
+
       if (!error) {
         S.students = data || [];
-        // Pre-convert face descriptors to Float32Array once here so
-        // findBestMatch() never pays the conversion cost on every frame.
+
+        // Pre-convert face descriptors from JSON arrays to Float32Array objects.
+        // We do this ONCE here (not on every scan frame) for maximum performance.
+        // Float32Array is what face-api.js expects for euclideanDistance().
         S.descriptorCache = S.students.map(st => {
-          const raw = st.face_descriptor;
+          const raw  = st.face_descriptor;
+          // face_descriptor is stored as JSONB — may come back as array or object
           const vals = Array.isArray(raw) ? raw : Object.values(raw);
           return { id: st.id, vec: new Float32Array(vals) };
         });
       }
 
+      // Render student cards in the admin Members tab
       const grid = document.getElementById('students-grid');
-      const cnt = document.getElementById('student-count');
+      const cnt  = document.getElementById('student-count');
+
       if (grid) {
         if (!S.students.length) {
           grid.innerHTML = '<div class="empty-state">No students enrolled yet.</div>';
         } else {
           grid.innerHTML = S.students.map(s => `
-        <div class="student-card">
-          <div class="student-card-name">${esc(s.name)}</div>
-          <div class="student-card-enrollment">${esc(s.enrollment_no)}</div>
-          <div class="student-card-details">
-            ${s.collage    ? `🏫 ${esc(s.collage)}<br>`    : ''}
-            ${s.department ? `🏛 ${esc(s.department)}<br>` : ''}
-            ${s.branch     ? `🌿 ${esc(s.branch)}<br>`     : ''}
-            ${s.pu_mail    ? `✉ ${esc(s.pu_mail)}<br>`    : ''}
-            ${s.phone      ? `📞 ${esc(s.phone)}`          : ''}
-          </div>
-          <button class="student-card-delete" onclick="deleteStudent('${s.id}','${esc(s.name)}')">Delete</button>
-        </div>
-      `).join('');
+            <div class="student-card">
+              <div class="student-card-name">${esc(s.name)}</div>
+              <div class="student-card-enrollment">${esc(s.enrollment_no)}</div>
+              <div class="student-card-details">
+                ${s.collage    ? `🏫 ${esc(s.collage)}<br>`    : ''}
+                ${s.department ? `🏛 ${esc(s.department)}<br>` : ''}
+                ${s.branch     ? `🌿 ${esc(s.branch)}<br>`     : ''}
+                ${s.pu_mail    ? `✉ ${esc(s.pu_mail)}<br>`    : ''}
+                ${s.phone      ? `📞 ${esc(s.phone)}`          : ''}
+              </div>
+              <!-- Delete button: passes student id and name to deleteStudent() -->
+              <button class="student-card-delete" onclick="deleteStudent('${s.id}','${esc(s.name)}')">Delete</button>
+            </div>
+          `).join('');
         }
       }
       if (cnt) cnt.textContent = `${S.students.length} student${S.students.length !== 1 ? 's' : ''} enrolled`;
     }
 
+    // Deletes a student and all their attendance records from the DB
+    // (attendance is cascade-deleted because of the ON DELETE CASCADE foreign key)
     async function deleteStudent(id, name) {
       if (!confirm(`Delete ${name}? Their attendance records will also be removed.`)) return;
       await S.sb.from('students').delete().eq('id', id);
-      removeRecentChip(name);
-      S.markedToday.delete(id);
-      loadStudents();
+      removeRecentChip(name);       // Remove from the recent chips strip
+      S.markedToday.delete(id);     // Remove from today's marked cache
+      loadStudents();               // Refresh the grid
     }
 
-    // ════════════════════════════════════════════════════════
+    // ════════════════════════════════════════════════════════════════
     //  ATTENDANCE LOGS
-    // ════════════════════════════════════════════════════════
+    // ════════════════════════════════════════════════════════════════
+
+    // Loads attendance records for the selected date and renders them in the table
     async function loadLogs() {
-      const date = document.getElementById('log-date').value;
+      const date  = document.getElementById('log-date').value;
       const tbody = document.getElementById('logs-tbody');
+
+      // Show spinner while loading
       tbody.innerHTML = '<tr><td colspan="6" class="empty-state"><div class="spinner"></div></td></tr>';
 
-      let query = S.sb.from('attendance')
+      // Join attendance with students to get name, enrollment_no, department
+      let query = S.sb
+        .from('attendance')
         .select('*, students(name, enrollment_no, department)')
-        .order('time_in');
+        .order('time_in'); // Sort by check-in time
 
-      if (date) query = query.eq('date', date);
+      if (date) query = query.eq('date', date); // Filter by selected date
 
       const { data, error } = await query;
 
@@ -2311,7 +2142,7 @@ CREATE POLICY "Admin: Manage attendance" ON attendance FOR ALL TO authenticated 
       }
 
       const rows = data || [];
-      S.logsData = rows;
+      S.logsData = rows; // Cache for Excel export
 
       if (!rows.length) {
         tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No attendance records found.</td></tr>';
@@ -2319,70 +2150,83 @@ CREATE POLICY "Admin: Manage attendance" ON attendance FOR ALL TO authenticated 
         return;
       }
 
+      // Render table rows
       tbody.innerHTML = rows.map((r, i) => `
-    <tr>
-      <td style="color:var(--muted);font-family:var(--font-mono)">${i + 1}</td>
-      <td>${esc(r.students?.name || '—')}</td>
-      <td><span class="badge">${esc(r.students?.enrollment_no || '—')}</span></td>
-      <td style="color:var(--text2)">${esc(r.students?.department || '—')}</td>
-      <td style="font-family:var(--font-mono);font-size:13px">${r.date}</td>
-      <td style="font-family:var(--font-mono);font-size:13px">${r.time_in}</td>
-    </tr>
-  `).join('');
-      document.getElementById('logs-count').textContent = `${rows.length} record${rows.length !== 1 ? 's' : ''} found`;
+        <tr>
+          <td style="color:var(--muted);font-family:var(--font-mono)">${i + 1}</td>
+          <td>${esc(r.students?.name || '—')}</td>
+          <td><span class="badge">${esc(r.students?.enrollment_no || '—')}</span></td>
+          <td style="color:var(--text2)">${esc(r.students?.department || '—')}</td>
+          <td style="font-family:var(--font-mono);font-size:13px">${r.date}</td>
+          <td style="font-family:var(--font-mono);font-size:13px">${r.time_in}</td>
+        </tr>
+      `).join('');
+
+      document.getElementById('logs-count').textContent =
+        `${rows.length} record${rows.length !== 1 ? 's' : ''} found`;
     }
 
-    // ════════════════════════════════════════════════════════
+    // ════════════════════════════════════════════════════════════════
     //  EXCEL EXPORT
-    // ════════════════════════════════════════════════════════
+    //  Uses SheetJS library to generate a .xlsx file in the browser.
+    //  Creates one sheet per date, plus an "All Records" combined sheet.
+    // ════════════════════════════════════════════════════════════════
     async function exportExcel() {
       if (!S.logsData.length) { alert('No data to export. Load logs first.'); return; }
 
-      // Group by date
+      // Group records by date (so each date gets its own Excel sheet)
       const grouped = {};
       for (const r of S.logsData) {
         const d = r.date;
         if (!grouped[d]) grouped[d] = [];
         grouped[d].push({
-          'Name': r.students?.name || '',
+          'Name':          r.students?.name          || '',
           'Enrollment No': r.students?.enrollment_no || '',
-          'Department': r.students?.department || '',
-          'Date': r.date,
-          'Time In': r.time_in,
+          'Department':    r.students?.department    || '',
+          'Date':          r.date,
+          'Time In':       r.time_in,
         });
       }
 
-      const wb = XLSX.utils.book_new();
+      const wb = XLSX.utils.book_new(); // Create new workbook
+
+      // Add one sheet per date
       for (const [date, rows] of Object.entries(grouped)) {
         const ws = XLSX.utils.json_to_sheet(rows);
-        // Style header row width
-        ws['!cols'] = [{ wch: 24 }, { wch: 16 }, { wch: 30 }, { wch: 12 }, { wch: 10 }];
-        XLSX.utils.book_append_sheet(wb, ws, date);
+        ws['!cols'] = [{ wch: 24 }, { wch: 16 }, { wch: 30 }, { wch: 12 }, { wch: 10 }]; // Column widths
+        XLSX.utils.book_append_sheet(wb, ws, date); // Sheet name = date
       }
 
-      // Also add a combined "All" sheet
+      // Add combined "All Records" sheet with everything
       const allRows = S.logsData.map(r => ({
-        'Name': r.students?.name || '',
+        'Name':          r.students?.name          || '',
         'Enrollment No': r.students?.enrollment_no || '',
-        'Department': r.students?.department || '',
-        'Date': r.date,
-        'Time In': r.time_in,
+        'Department':    r.students?.department    || '',
+        'Date':          r.date,
+        'Time In':       r.time_in,
       }));
       const wsAll = XLSX.utils.json_to_sheet(allRows);
       wsAll['!cols'] = [{ wch: 24 }, { wch: 16 }, { wch: 30 }, { wch: 12 }, { wch: 10 }];
       XLSX.utils.book_append_sheet(wb, wsAll, 'All Records');
 
-      const fname = `attendance_${todayStr()}.xlsx`;
-      XLSX.writeFile(wb, fname);
+      // Trigger browser download
+      XLSX.writeFile(wb, `attendance_${todayStr()}.xlsx`);
     }
 
-    // ════════════════════════════════════════════════════════
-    //  UTILS
-    // ════════════════════════════════════════════════════════
+    // ════════════════════════════════════════════════════════════════
+    //  UTILITY FUNCTIONS
+    // ════════════════════════════════════════════════════════════════
+
+    // HTML-escapes a string to prevent XSS (Cross-Site Scripting) attacks.
+    // Always use esc() when inserting user-provided data into innerHTML.
+    // Example: esc('<script>') → '&lt;script&gt;'
     function esc(s) {
-      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      return String(s)
+        .replace(/&/g,  '&amp;')
+        .replace(/</g,  '&lt;')
+        .replace(/>/g,  '&gt;')
+        .replace(/"/g,  '&quot;');
     }
   </script>
 </body>
-
 </html>
