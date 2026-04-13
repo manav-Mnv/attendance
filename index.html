@@ -46,8 +46,8 @@
         </div>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
           <div class="form-group">
-            <label class="label">Enrollment Number</label>
-            <input type="text" id="reg-enrollment" placeholder="e.g. CS21001" />
+            <label class="label">Roll Number</label>
+            <input type="text" id="reg-roll" placeholder="e.g. CS21001" />
           </div>
           <div class="form-group">
             <label class="label">Role</label>
@@ -76,26 +76,7 @@
   <div class="toast" id="toast"></div>
 
   <style>
-    .tab-btn {
-      flex: 1;
-      padding: 10px;
-      background: transparent;
-      border: none;
-      color: var(--text-muted);
-      font-family: var(--font-head);
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 2px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .tab-btn.active {
-      background: var(--cyan-dim);
-      color: var(--cyan);
-    }
-    .tab-btn:hover:not(.active) {
-      color: var(--text);
-    }
+    /* Tab styles are in styles.css */
   </style>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -110,94 +91,76 @@
 
     async function doLogin() {
       const btn = document.getElementById('login-btn');
-      try {
-        const email = document.getElementById('login-email').value.trim();
-        const password = document.getElementById('login-password').value;
-        if (!email || !password) return toast('Fill all fields', 'error');
+      const email = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-password').value;
+      if (!email || !password) return toast('Fill all fields', 'error');
 
-        btn.disabled = true;
-        btn.textContent = 'AUTHENTICATING...';
+      btn.disabled = true;
+      btn.textContent = 'AUTHENTICATING...';
 
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) {
-          toast(error.message, 'error');
-          btn.disabled = false;
-          btn.innerHTML = '<span>⚡</span> AUTHENTICATE';
-          return;
-        }
-
-        const { data: profile } = await supabase
-          .from('profiles').select('role').eq('id', data.user.id).single();
-
-        toast('Access granted ✓', 'success');
-        setTimeout(() => {
-          if (profile?.role === 'teacher') {
-            window.location.href = 'teacher.html';
-          } else {
-            window.location.href = 'student.html';
-          }
-        }, 800);
-      } catch (err) {
-        toast('An error occurred: ' + err.message, 'error');
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        toast(error.message, 'error');
         btn.disabled = false;
         btn.innerHTML = '<span>⚡</span> AUTHENTICATE';
+        return;
       }
+
+      // Get profile to determine role
+      const { data: profile } = await supabase
+        .from('profiles').select('role').eq('id', data.user.id).single();
+
+      toast('Access granted ✓', 'success');
+      setTimeout(() => {
+        if (profile?.role === 'teacher') {
+          window.location.href = 'teacher.html';
+        } else {
+          window.location.href = 'student.html';
+        }
+      }, 800);
     }
 
     async function doRegister() {
       const btn = document.getElementById('register-btn');
-      try {
-        const name = document.getElementById('reg-name').value.trim();
-        const enrollment_no = document.getElementById('reg-enrollment').value.trim();
-        const role = document.getElementById('reg-role').value;
-        const email = document.getElementById('reg-email').value.trim();
-        const password = document.getElementById('reg-password').value;
+      const name = document.getElementById('reg-name').value.trim();
+      const roll = document.getElementById('reg-roll').value.trim();
+      const role = document.getElementById('reg-role').value;
+      const email = document.getElementById('reg-email').value.trim();
+      const password = document.getElementById('reg-password').value;
 
-        if (!name || !enrollment_no || !email || !password) return toast('Fill all fields', 'error');
-        if (password.length < 6) return toast('Password min 6 characters', 'error');
+      if (!name || !roll || !email || !password) return toast('Fill all fields', 'error');
+      if (password.length < 6) return toast('Password min 6 characters', 'error');
 
-        btn.disabled = true;
-        btn.textContent = 'CREATING ACCOUNT...';
+      btn.disabled = true;
+      btn.textContent = 'CREATING ACCOUNT...';
 
-        const { data, error } = await supabase.auth.signUp({ email, password });
-        if (error) {
-          toast(error.message, 'error');
-          btn.disabled = false;
-          btn.innerHTML = '<span>✦</span> CREATE ACCOUNT';
-          return;
-        }
-
-        if (!data.user) {
-          toast('Account may already exist or require email confirmation.', 'warn');
-          btn.disabled = false;
-          btn.innerHTML = '<span>✦</span> CREATE ACCOUNT';
-          return;
-        }
-
-        // Create profile
-        const { error: profileError } = await supabase.from('profiles').insert({
-          id: data.user.id,
-          name,
-          enrollment_number: enrollment_no,
-          role,
-        });
-
-        if (profileError) {
-          toast(profileError.message, 'error');
-          btn.disabled = false;
-          btn.innerHTML = '<span>✦</span> CREATE ACCOUNT';
-          return;
-        }
-
-        toast('Account created! Please login.', 'success');
-        setTimeout(() => switchTab('login'), 1200);
+      const { data, error } = await supabase.auth.signUp({ email, password });
+      if (error) {
+        toast(error.message, 'error');
         btn.disabled = false;
         btn.innerHTML = '<span>✦</span> CREATE ACCOUNT';
-      } catch (err) {
-        toast('An unexpected error occurred: ' + err.message, 'error');
-        btn.disabled = false;
-        btn.innerHTML = '<span>✦</span> CREATE ACCOUNT';
+        return;
       }
+
+      // Create profile
+      const { error: profileError } = await supabase.from('profiles').insert({
+        id: data.user.id,
+        name,
+        roll_number: roll,
+        role,
+      });
+
+      if (profileError) {
+        toast(profileError.message, 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<span>✦</span> CREATE ACCOUNT';
+        return;
+      }
+
+      toast('Account created! Please login.', 'success');
+      setTimeout(() => switchTab('login'), 1200);
+      btn.disabled = false;
+      btn.innerHTML = '<span>✦</span> CREATE ACCOUNT';
     }
 
     // Auto redirect if already logged in
