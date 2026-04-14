@@ -368,6 +368,13 @@
             <input type="password" id="reg-password" placeholder="••••••••" />
           </div>
         </div>
+        <div class="form-group">
+          <label class="label">Faculty Secret Code</label>
+          <div class="input-wrap">
+            <span class="input-icon">🔑</span>
+            <input type="password" id="reg-faculty-code" placeholder="Enter Registration Key" />
+          </div>
+        </div>
         
         <div class="form-grid-2">
           <div class="form-group">
@@ -437,9 +444,10 @@
       const name = document.getElementById('reg-name').value.trim();
       const email = document.getElementById('reg-email').value.trim();
       const pass = document.getElementById('reg-password').value;
+      const fcode = document.getElementById('reg-faculty-code').value.trim();
       const batchName = document.getElementById('reg-batch-name').value.trim();
       const batchCode = document.getElementById('reg-batch-code').value.trim();
-      await teacherRegister(email, pass, name, batchName, batchCode);
+      await teacherRegister(email, pass, name, batchName, batchCode, fcode);
     }
 
     window.onload = () => { handleAuthCallback(); };

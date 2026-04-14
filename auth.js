@@ -45,9 +45,21 @@ async function teacherLogin(email, password) {
 /**
  * Handles teacher registration, including profile and initial batch creation.
  */
-async function teacherRegister(email, password, name, batchName, batchCode) {
-    if (!email || !password || !name || !batchName || !batchCode) {
-        return alert("Please fill in all fields.");
+async function teacherRegister(email, password, name, batchName, batchCode, facultyCode) {
+    const SECRET_KEY = "PARUL-FACULTY-2026"; // Hardcoded for demo - share this with teachers
+    
+    if (!email || !password || !name || !batchName || !batchCode || !facultyCode) {
+        return alert("Please fill in all fields including the Faculty Secret Code.");
+    }
+
+    // LAYER 1: Secret Key Check
+    if (facultyCode !== SECRET_KEY) {
+        return alert("Invalid Faculty Secret Code. Unauthorized registration blocked.");
+    }
+
+    // LAYER 2: Domain Check (Consistency with student rules)
+    if (!email.endsWith(ALLOWED_DOMAIN)) {
+        return alert(`Teachers must also use their official ${ALLOWED_DOMAIN} email.`);
     }
 
     // 1. Create the Auth User
