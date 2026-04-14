@@ -136,9 +136,14 @@
 
         <div class="form-group">
           <label class="label">Session Code</label>
-          <input type="text" id="otp-input" placeholder="ABC123"
-            maxlength="6" style="font-family:var(--font-mono); font-size:22px; letter-spacing:6px; text-transform:uppercase; text-align:center;"
-            oninput="this.value=this.value.toUpperCase()" />
+          <div class="otp-container" id="otp-inputs">
+            <input type="text" maxlength="1" class="otp-box" oninput="moveFocus(this, 'next')" onkeydown="handleKey(event, this)">
+            <input type="text" maxlength="1" class="otp-box" oninput="moveFocus(this, 'next')" onkeydown="handleKey(event, this)">
+            <input type="text" maxlength="1" class="otp-box" oninput="moveFocus(this, 'next')" onkeydown="handleKey(event, this)">
+            <input type="text" maxlength="1" class="otp-box" oninput="moveFocus(this, 'next')" onkeydown="handleKey(event, this)">
+            <input type="text" maxlength="1" class="otp-box" oninput="moveFocus(this, 'next')" onkeydown="handleKey(event, this)">
+            <input type="text" maxlength="1" class="otp-box" oninput="moveFocus(this, 'next')" onkeydown="handleKey(event, this)">
+          </div>
         </div>
 
         <button class="btn btn-primary" id="btn-verify-otp" onclick="verifyOTP()">
@@ -206,6 +211,8 @@
   <div class="toast" id="toast"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase.js"></script>
+  <script src="auth.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.13/dist/face-api.js"></script>
   <script src="config.js"></script>
   <script>
@@ -228,6 +235,26 @@
         await loadFaceModels();
       }
     })();
+
+    // ─── OTP UI HELPERS ──────────────────────────────────────────────────
+    function moveFocus(el, direction) {
+      if (el.value.length === 1 && direction === 'next') {
+        const next = el.nextElementSibling;
+        if (next) next.focus();
+      }
+    }
+    function handleKey(e, el) {
+      if (e.key === 'Backspace' && el.value.length === 0) {
+        const prev = el.previousElementSibling;
+        if (prev) prev.focus();
+      }
+    }
+    function getFullOTP() {
+      const inputs = document.querySelectorAll('#otp-inputs input');
+      let val = '';
+      inputs.forEach(i => val += i.value);
+      return val.toUpperCase();
+    }
 
     async function loadFaceModels() {
       try {
@@ -393,8 +420,8 @@
     }
 
     async function verifyOTP() {
-      const otp = document.getElementById('otp-input').value.trim().toUpperCase();
-      if (otp.length < 4) return toast('Enter the session code', 'error');
+      const otp = getFullOTP();
+      if (otp.length < 4) return toast('Enter the full session code', 'error');
 
       const btn = document.getElementById('btn-verify-otp');
       btn.disabled = true;
@@ -403,7 +430,7 @@
       const now = new Date().toISOString();
       const { data: sessions, error } = await supabase
         .from('sessions')
-        .select('*')
+        .select('*, batches(name)')
         .eq('otp', otp)
         .gt('expires_at', now)
         .single();
@@ -441,7 +468,7 @@
       document.getElementById('as2').classList.add('active');
 
       document.getElementById('session-subject-text').innerHTML =
-        `Session: <strong>${activeSession.subject}</strong>`;
+        `Session: <strong>${activeSession.subject}</strong> <span class="text-muted" style="font-size:12px;">(${activeSession.batches?.name || 'General'})</span>`;
     }
 
     async function checkGPSForAttend() {
@@ -564,7 +591,7 @@
             document.getElementById('attend-step-3').style.display = 'none';
             document.getElementById('attend-success').style.display = 'block';
             document.getElementById('success-session-info').textContent =
-              `Subject: ${activeSession.subject}`;
+              `${activeSession.subject} — ${activeSession.batches?.name || 'General'}`;
             document.getElementById('success-time').textContent =
               `Marked at ${new Date().toLocaleTimeString()}`;
             toast('Attendance marked ✓', 'success');
@@ -586,8 +613,7 @@
     }
 
     async function doLogout() {
-      await supabase.auth.signOut();
-      window.location.href = 'index.html';
+      await signOut();
     }
   </script>
 </body>

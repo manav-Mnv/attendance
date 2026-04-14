@@ -29,8 +29,11 @@
         <div class="section-sub">Set location, subject, and duration</div>
 
         <div class="form-group">
-          <label class="label">Subject / Lecture</label>
-          <input type="text" id="subject" placeholder="e.g. Machine Learning - Lab 3" />
+          <label class="label">Session Name</label>
+          <select id="subject">
+            <option value="Session 1">Session 1</option>
+            <option value="Session 2">Session 2</option>
+          </select>
         </div>
 
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
@@ -39,19 +42,33 @@
             <input type="number" id="duration" value="10" min="1" max="120" />
           </div>
           <div class="form-group">
-            <label class="label">Radius (meters)</label>
-            <input type="number" id="radius" value="60" min="10" max="500" />
+            <label class="label">Target Batch</label>
+            <select id="session-batch">
+              <option value="">Loading batches...</option>
+            </select>
           </div>
         </div>
 
         <div class="form-group">
-          <label class="label">Classroom Location</label>
+          <label class="label">Radius (meters) — Adjust if students are far</label>
+          <input type="range" id="radius" value="60" min="10" max="300" oninput="this.nextElementSibling.value = this.value + 'm'" />
+          <output style="font-size:12px; color:var(--accent);">60m</output>
+        </div>
+
+        <div class="form-group">
+          <label class="label">Classroom Location (Auto or Manual)</label>
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px;">
-            <input type="number" id="lat" placeholder="Latitude" step="any" />
-            <input type="number" id="lng" placeholder="Longitude" step="any" />
+            <div style="position:relative;">
+              <span style="position:absolute; left:10px; top:12px; font-size:10px; color:var(--text-muted);">LAT</span>
+              <input type="number" id="lat" placeholder="Latitude" step="any" style="padding-left:35px;" />
+            </div>
+            <div style="position:relative;">
+              <span style="position:absolute; left:10px; top:12px; font-size:10px; color:var(--text-muted);">LNG</span>
+              <input type="number" id="lng" placeholder="Longitude" step="any" style="padding-left:35px;" />
+            </div>
           </div>
           <button class="btn btn-outline btn-sm" onclick="captureLocation()" style="width:100%;">
-            📍 USE MY CURRENT LOCATION
+            📍 DETECT CURRENT LOCATION
           </button>
         </div>
 
@@ -113,12 +130,19 @@
       </div>
 
       <!-- Filter -->
-      <div style="display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap;">
-        <select id="filter-session" onchange="loadAttendance()" style="max-width:300px;">
-          <option value="">All Sessions</option>
-        </select>
-        <input type="text" id="filter-search" placeholder="Search by name or enrollment..." 
-          oninput="filterTable()" style="max-width:220px;" />
+      <div style="display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; align-items:center;">
+        <div class="form-group" style="margin-bottom:0; flex:1; min-width:200px;">
+          <select id="filter-session" onchange="loadAttendance()" style="width:100%;">
+            <option value="">All Sessions</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom:0; width:160px;">
+          <input type="date" id="filter-date" onchange="loadAttendance()" style="width:100%;" />
+        </div>
+        <div class="form-group" style="margin-bottom:0; flex:1; min-width:200px;">
+          <input type="text" id="filter-search" placeholder="Search name or enrollment..." 
+            oninput="filterTable()" style="width:100%;" />
+        </div>
       </div>
 
       <div style="overflow-x:auto;">
@@ -128,7 +152,8 @@
               <th>#</th>
               <th>Name</th>
               <th>Enrollment No.</th>
-              <th>Subject</th>
+              <th>Batch</th>
+              <th>Session</th>
               <th>Time</th>
               <th>Status</th>
             </tr>
@@ -139,16 +164,41 @@
         </table>
       </div>
 
-      <div style="margin-top:12px; font-family:var(--font-mono); font-size:11px; color:var(--text-muted);">
-        Total: <span id="total-count">0</span> records
+      <div style="margin-top:12px; font-family:var(--font-mono); font-size:11px; color:var(--text-muted); display:flex; justify-content:space-between; align-items:center;">
+        <div>Total: <span id="total-count">0</span> records</div>
+        <button class="btn btn-outline btn-sm" onclick="showManualAttend()" style="padding:4px 8px; font-size:10px;">➕ MANUAL ENTRY</button>
       </div>
     </div>
 
   </div>
 
+  <!-- MODAL: MANUAL ATTENDANCE -->
+  <div id="modal-manual" class="view" style="position:fixed; inset:0; background:rgba(0,0,0,0.8); backdrop-filter:blur(8px); z-index:1000; display:none; align-items:center; justify-content:center;">
+    <div class="card" style="width:100%; max-width:400px; animation: none;">
+      <div class="section-title">Manual Attendance Entry</div>
+      <div class="section-sub">Add a student to the active session manually.</div>
+      
+      <div class="form-group">
+        <label class="label">Student Enrollment No.</label>
+        <input type="text" id="manual-enroll" placeholder="e.g. CS21001" />
+      </div>
+      <div class="form-group">
+        <label class="label">Student Full Name (Optional)</label>
+        <input type="text" id="manual-name" placeholder="Leave blank to auto-fill" />
+      </div>
+      
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:20px;">
+        <button class="btn btn-outline" onclick="closeManualModal()">CANCEL</button>
+        <button class="btn btn-primary" onclick="doManualAttend()">MARK PRESENT</button>
+      </div>
+    </div>
+  </div>
+
   <div class="toast" id="toast"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase.js"></script>
+  <script src="auth.js"></script>
   <script src="config.js"></script>
   <script>
     let currentUser = null;
@@ -161,9 +211,18 @@
     (async () => {
       currentUser = await requireAuth('teacher');
       if (!currentUser) return;
-      document.getElementById('nav-user').textContent = `${currentUser.name} · Teacher`;
+      document.getElementById('nav-user').innerHTML = `
+        <span style="opacity:0.7; font-size:12px; margin-right:8px;">${currentUser.department || 'General Faculty'}</span>
+        <strong>${currentUser.name}</strong>
+        <span class="badge" style="margin-left:8px; font-size:10px;">ID: ${currentUser.enrollment_number || 'N/A'}</span>
+      `;
 
+      await loadBatches();
       await loadSessions();
+      
+      // Default to today's date
+      document.getElementById('filter-date').value = new Date().toISOString().split('T')[0];
+      
       await loadAttendance();
       await checkActiveSession();
 
@@ -175,6 +234,27 @@
         }
       }, 10000);
     })();
+
+    async function loadBatches() {
+      // Fetch the fixed batches from the database
+      const { data, error } = await supabase.from('batches')
+        .select('*')
+        .eq('teacher_id', currentUser.id)
+        .order('name');
+      
+      if (error) return console.error('Error loading batches:', error);
+      
+      const select = document.getElementById('session-batch');
+      select.innerHTML = '<option value="">General (All Students)</option>';
+      if (data) {
+        data.forEach(b => {
+          const opt = document.createElement('option');
+          opt.value = b.id;
+          opt.textContent = b.name;
+          select.appendChild(opt);
+        });
+      }
+    }
 
     // ─── LOCATION ─────────────────────────────────────────────────────────
     async function captureLocation() {
@@ -210,6 +290,7 @@
         otp,
         subject,
         teacher_id: currentUser.id,
+        batch_id: document.getElementById('session-batch').value || null,
         location_lat: lat,
         location_lng: lng,
         radius_meters: radius,
@@ -323,13 +404,20 @@
 
     async function loadAttendance() {
       const sessionId = document.getElementById('filter-session').value;
+      const filterDate = document.getElementById('filter-date').value;
 
       let query = supabase.from('attendance')
-        .select(`*, sessions(subject, created_at)`)
+        .select(`*, sessions(subject, created_at, batches(name))`)
         .order('marked_at', { ascending: false });
 
-      // Filter by teacher's sessions
-      if (sessionId) query = query.eq('session_id', sessionId);
+      if (sessionId) {
+        query = query.eq('session_id', sessionId);
+      } else if (filterDate) {
+        // Filter by specific day
+        const start = `${filterDate}T00:00:00.000Z`;
+        const end = `${filterDate}T23:59:59.999Z`;
+        query = query.gte('marked_at', start).lte('marked_at', end);
+      }
 
       const { data, error } = await query;
       if (error) return toast(error.message, 'error');
@@ -339,26 +427,76 @@
     }
 
     function renderTable(records) {
-      const tbody = document.getElementById('table-body');
+      const container = document.getElementById('table-body');
       document.getElementById('total-count').textContent = records.length;
 
       if (!records.length) {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:32px; color:var(--text-muted);">No records found</td></tr>`;
+        container.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:32px; color:var(--text-muted);">No records found</td></tr>`;
         return;
       }
 
-      tbody.innerHTML = records.map((r, i) => `
-        <tr>
-          <td style="color:var(--text-muted); font-family:var(--font-mono); font-size:11px;">${i + 1}</td>
-          <td>${r.student_name || '—'}</td>
-          <td style="font-family:var(--font-mono); font-size:12px;">${r.enrollment_number || '—'}</td>
-          <td>${r.sessions?.subject || '—'}</td>
-          <td style="font-family:var(--font-mono); font-size:11px; color:var(--text-muted);">
-            ${new Date(r.marked_at).toLocaleString()}
-          </td>
-          <td><span class="badge badge-green">✓ Present</span></td>
-        </tr>
-      `).join('');
+      // Group records by Date and then by SessionID
+      const groupedByDate = {};
+      records.forEach(r => {
+        const date = new Date(r.marked_at).toLocaleDateString(undefined, { 
+          weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+        });
+        if (!groupedByDate[date]) groupedByDate[date] = {};
+        
+        const sId = r.session_id;
+        if (!groupedByDate[date][sId]) groupedByDate[date][sId] = {
+          subject: r.sessions?.subject || 'Unknown Session',
+          batch: r.sessions?.batches?.name || 'General',
+          time: new Date(r.sessions?.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          students: []
+        };
+        
+        groupedByDate[date][sId].students.push(r);
+      });
+
+      let html = '';
+      for (const [date, sessions] of Object.entries(groupedByDate)) {
+        html += `
+          <tr class="date-header-row">
+            <td colspan="6" style="background:rgba(255,255,255,0.03); padding:12px 16px; font-weight:700; color:var(--accent); border-bottom:1px solid var(--border-color);">
+              📅 ${date}
+            </td>
+          </tr>
+        `;
+
+        for (const [sId, sData] of Object.entries(sessions)) {
+          html += `
+            <tr class="session-header-row">
+              <td colspan="7" style="background:rgba(255,255,255,0.01); padding:8px 16px; font-size:13px; font-weight:600; color:var(--text-muted); border-bottom:1px dashed var(--border-color);">
+                Session: <span style="color:var(--text)">${sData.subject}</span> 
+                <span style="margin:0 8px; opacity:0.3;">|</span> 
+                Batch: <span style="color:var(--accent)">${sData.batch}</span> 
+                <span style="margin:0 8px; opacity:0.3;">|</span> 
+                Time: ${sData.time}
+                <span class="badge" style="margin-left:12px; font-size:10px;">${sData.students.length} Present</span>
+              </td>
+            </tr>
+          `;
+
+          sData.students.forEach((r, idx) => {
+            html += `
+              <tr>
+                <td style="color:var(--text-muted); font-family:var(--font-mono); font-size:11px;">${idx + 1}</td>
+                <td>${r.student_name || '—'}</td>
+                <td style="font-family:var(--font-mono); font-size:12px;">${r.enrollment_number || '—'}</td>
+                <td style="font-size:12px; color:var(--accent);">${sData.batch}</td>
+                <td style="font-size:12px; color:var(--text-muted);">${sData.subject}</td>
+                <td style="font-family:var(--font-mono); font-size:11px; color:var(--text-muted);">
+                  ${new Date(r.marked_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                </td>
+                <td><span class="badge badge-green">✓ Present</span></td>
+              </tr>
+            `;
+          });
+        }
+      }
+
+      container.innerHTML = html;
     }
 
     function filterTable() {
@@ -372,13 +510,14 @@
 
     function exportCSV() {
       if (!allRecords.length) return toast('No data to export', 'warn');
-      const rows = [['#', 'Name', 'Enrollment No', 'Subject', 'Time', 'Status']];
+      const rows = [['#', 'Name', 'Enrollment No', 'Session', 'Batch', 'Time', 'Status']];
       allRecords.forEach((r, i) => {
         rows.push([
           i + 1,
           r.student_name || '',
           r.enrollment_number || '',
           r.sessions?.subject || '',
+          r.sessions?.batches?.name || 'General',
           new Date(r.marked_at).toLocaleString(),
           'Present'
         ]);
@@ -394,10 +533,57 @@
     }
 
     async function doLogout() {
-      clearInterval(timerInterval);
-      clearInterval(refreshInterval);
-      await supabase.auth.signOut();
-      window.location.href = 'index.html';
+      await signOut();
+    }
+
+    // ─── MANUAL ATTENDANCE ────────────────────────────────────────────────
+    function showManualAttend() {
+      if (!activeSession) return toast('No active session to add to', 'warn');
+      document.getElementById('modal-manual').style.display = 'flex';
+    }
+
+    function closeManualModal() {
+      document.getElementById('modal-manual').style.display = 'none';
+      document.getElementById('manual-enroll').value = '';
+      document.getElementById('manual-name').value = '';
+    }
+
+    async function doManualAttend() {
+      const enrollNum = document.getElementById('manual-enroll').value.trim();
+      let name = document.getElementById('manual-name').value.trim();
+
+      if (!enrollNum) return toast('Enrollment number is required', 'error');
+
+      // Try to find the student profile if name is blank
+      let studentId = null;
+      if (!name) {
+        const { data: profile } = await supabase.from('profiles').select('id, name').eq('enrollment_number', enrollNum).single();
+        if (profile) {
+          name = profile.name;
+          studentId = profile.id;
+        }
+      } else {
+        const { data: profile } = await supabase.from('profiles').select('id').eq('enrollment_number', enrollNum).single();
+        if (profile) studentId = profile.id;
+      }
+
+      const { error } = await supabase.from('attendance').insert({
+        student_id: studentId, // can be null if student hasn't registered yet
+        session_id: activeSession.id,
+        student_name: name || `Manual Entry (${enrollNum})`,
+        enrollment_number: enrollNum
+      });
+
+      if (error) {
+        if (error.code === '23505') toast('Student already marked present', 'warn');
+        else toast(error.message, 'error');
+        return;
+      }
+
+      toast('Manual attendance marked!', 'success');
+      closeManualModal();
+      loadAttendance();
+      refreshAttendCount();
     }
   </script>
 </body>

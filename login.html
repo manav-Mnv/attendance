@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Marquee Training — Secure Portal</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .google-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      background: white;
+      color: #333;
+      font-weight: 600;
+      width: 100%;
+      padding: 14px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .google-btn:hover {
+      background: #f1f1f1;
+    }
+    .google-btn img {
+      width: 20px;
+      height: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="page-wrapper">
+    <div class="card" id="auth-card">
+      <div class="brand">
+        <div class="brand-mark">
+          <div class="brand-icon">◈</div>
+          <div class="brand-name">MARQUEE <span>TRAINING</span></div>
+        </div>
+        <div class="brand-sub">Secure Attendance Intelligence Portal</div>
+      </div>
+
+      <div style="display:flex; gap:0; margin-bottom:20px; border:1px solid var(--border2); border-radius:8px; overflow:hidden;">
+        <button class="tab-btn active" id="tab-student" onclick="switchLoginTab('student')">STUDENT</button>
+        <button class="tab-btn" id="tab-teacher" onclick="switchLoginTab('teacher')">TEACHER</button>
+      </div>
+
+      <!-- STUDENT LOCK VIEW -->
+      <div id="view-student">
+        <div style="text-align: center; margin-bottom: 20px;">
+          <p class="text-muted" style="font-size: 14px; line-height: 1.5;">
+            Students must use their official University Google account to access attendance records.
+          </p>
+          <span class="badge badge-green" style="margin-top: 8px;">@paruluniversity.ac.in Only</span>
+        </div>
+        
+        <button class="google-btn" onclick="studentGoogleLogin()">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google Logo" />
+          <span>Sign In with University Google</span>
+        </button>
+      </div>
+
+      <!-- TEACHER LOGIN VIEW -->
+      <div id="view-teacher" style="display:none;">
+        <div style="text-align: center; margin-bottom: 16px;">
+          <p class="text-muted" style="font-size: 13px;">Faculty Access Portal</p>
+        </div>
+        <div class="form-group">
+          <label class="label">Staff Email Address</label>
+          <input type="email" id="teacher-email" placeholder="faculty@university.edu" />
+        </div>
+        <div class="form-group">
+          <label class="label">Password</label>
+          <input type="password" id="teacher-password" placeholder="••••••••" />
+        </div>
+        <button class="btn btn-primary" onclick="doTeacherLogin()">
+          <span>⚡</span> FACULTY AUTHENTICATE
+        </button>
+        <p style="text-align: center; font-size: 12px; margin-top: 15px;">
+          <a href="javascript:void(0)" onclick="toggleTeacherAuth('register')" style="color: var(--accent);">Need an account? Register here</a>
+        </p>
+      </div>
+
+      <!-- TEACHER REGISTER VIEW -->
+      <div id="view-teacher-register" style="display:none;">
+        <div style="text-align: center; margin-bottom: 16px;">
+          <p class="text-muted" style="font-size: 13px;">Create Faculty Account</p>
+        </div>
+        <div class="form-group">
+          <label class="label">Full Name</label>
+          <input type="text" id="reg-name" placeholder="Dr. John Doe" />
+        </div>
+        <div class="form-group">
+          <label class="label">Email Address</label>
+          <input type="email" id="reg-email" placeholder="j.doe@paruluniversity.ac.in" />
+        </div>
+        <div class="form-group">
+          <label class="label">Password</label>
+          <input type="password" id="reg-password" placeholder="••••••••" />
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <div class="form-group">
+            <label class="label">Class Name</label>
+            <input type="text" id="reg-class-name" placeholder="CS Sem 3" />
+          </div>
+          <div class="form-group">
+            <label class="label">Class Code</label>
+            <input type="text" id="reg-class-code" placeholder="CS-301" />
+          </div>
+        </div>
+
+        <button class="btn btn-primary" onclick="doTeacherRegister()">
+          <span>📝</span> CREATE ACCOUNT & CLASS
+        </button>
+        <p style="text-align: center; font-size: 12px; margin-top: 15px;">
+          <a href="javascript:void(0)" onclick="toggleTeacherAuth('login')" style="color: var(--accent);">Already have an account? Login</a>
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Load separated configurations -->
+  <script src="supabase.js"></script>
+  <script src="auth.js"></script>
+  
+  <script>
+    function switchLoginTab(tab) {
+      document.getElementById('view-student').style.display = tab === 'student' ? 'block' : 'none';
+      document.getElementById('view-teacher').style.display = tab === 'teacher' ? 'block' : 'none';
+      document.getElementById('view-teacher-register').style.display = 'none'; // Hide register when switching tabs
+      document.getElementById('tab-student').classList.toggle('active', tab === 'student');
+      document.getElementById('tab-teacher').classList.toggle('active', tab === 'teacher');
+    }
+
+    function toggleTeacherAuth(mode) {
+      document.getElementById('view-teacher').style.display = mode === 'login' ? 'block' : 'none';
+      document.getElementById('view-teacher-register').style.display = mode === 'register' ? 'block' : 'none';
+    }
+
+    async function doTeacherLogin() {
+      const email = document.getElementById('teacher-email').value.trim();
+      const pass = document.getElementById('teacher-password').value;
+      await teacherLogin(email, pass);
+    }
+
+    async function doTeacherRegister() {
+      const name = document.getElementById('reg-name').value.trim();
+      const email = document.getElementById('reg-email').value.trim();
+      const pass = document.getElementById('reg-password').value;
+      const className = document.getElementById('reg-class-name').value.trim();
+      const classCode = document.getElementById('reg-class-code').value.trim();
+      
+      await teacherRegister(email, pass, name, className, classCode);
+    }
+
+    // Automatically inspects the URL/session on load for OAuth redirects or returning users.
+    window.onload = () => {
+      handleAuthCallback();
+    };
+  </script>
+</body>
+</html>
