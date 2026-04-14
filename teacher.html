@@ -453,13 +453,14 @@
       const filterDate = document.getElementById('filter-date').value;
 
       let query = supabase.from('attendance')
-        .select(`*, sessions(subject, created_at, batches(name))`)
+        .select(`*, sessions!inner(subject, created_at, teacher_id, batches(name))`)
+        .eq('sessions.teacher_id', currentUser.id)
         .order('marked_at', { ascending: false });
 
       if (sessionId) {
         query = query.eq('session_id', sessionId);
       } else if (filterDate) {
-        // Filter by specific day
+        // Filter by specific day (ensure we only see current teacher's days)
         const start = `${filterDate}T00:00:00.000Z`;
         const end = `${filterDate}T23:59:59.999Z`;
         query = query.gte('marked_at', start).lte('marked_at', end);
