@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Setup Admin — Marquee Training</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body style="display:flex; align-items:center; justify-content:center; height:100vh; margin:0; background:var(--bg);">
+
+  <div class="card" style="max-width:400px; text-align:center;">
+    <div class="section-title">Admin Setup Utility</div>
+    <div class="section-sub">Log in normally first, then use this button to grant yourself Admin permissions.</div>
+    
+    <div id="status" class="badge mt-20" style="display:none; margin: 0 auto 20px;">Checking status...</div>
+
+    <button class="btn btn-primary" id="btn-promote" onclick="makeMeAdmin()" style="width:100%; height:60px; font-size:18px;">
+      ⚡ PROMOTE ME TO ADMIN
+    </button>
+
+    <div class="mt-20">
+      <a href="index.html" class="text-muted" style="text-decoration:none; font-size:14px;">← Back to Login</a>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="config.js"></script>
+  <script>
+    async function makeMeAdmin() {
+      const btn = document.getElementById('btn-promote');
+      const status = document.getElementById('status');
+      
+      btn.disabled = true;
+      btn.textContent = 'WORKING...';
+
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast('Please log in first!', 'error');
+        btn.disabled = false;
+        btn.textContent = '⚡ PROMOTE ME TO ADMIN';
+        return;
+      }
+
+      // Force update the profile role to admin
+      const { error } = await supabase
+        .from('profiles')
+        .update({ role: 'admin' })
+        .eq('id', user.id);
+
+      if (error) {
+        // If profile doesn't exist yet, try inserting it
+        const { error: insError } = await supabase
+          .from('profiles')
+          .insert({ id: user.id, name: 'System Admin', role: 'admin' });
+        
+        if (insError) {
+          toast(insError.message, 'error');
+          btn.disabled = false;
+          btn.textContent = '⚡ PROMOTE ME TO ADMIN';
+          return;
+        }
+      }
+
+      toast('SUCCESS! You are now an Admin.', 'success');
+      btn.textContent = '✓ ADMIN GRANTED';
+      btn.style.background = 'var(--green)';
+      
+      status.style.display = 'inline-flex';
+      status.className = 'badge badge-green';
+      status.textContent = 'Role: ADMIN';
+
+      setTimeout(() => {
+        window.location.href = 'admin.html';
+      }, 1500);
+    }
+  </script>
+</body>
+</html>

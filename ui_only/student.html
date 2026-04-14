@@ -10,77 +10,18 @@
 
   <!-- NAV -->
   <nav class="nav">
-    <div class="nav-brand" style="display:flex; align-items:center; gap:10px;">
-      <div class="brand-icon" style="width:32px; height:32px; font-size:14px; margin-top:0;">◈</div>
-      <div>MARQUEE <span>TRAINING</span></div>
-    </div>
+    <div class="nav-brand">MARQUEE <span>TRAINING</span></div>
     <div class="nav-actions">
       <span class="nav-user" id="nav-user"></span>
       <button class="btn btn-outline btn-sm" onclick="doLogout()">LOGOUT</button>
     </div>
   </nav>
 
-  <!-- Decorative hex shapes -->
-  <div class="hex-decor hex-1" style="position:fixed; top:-60px; right:-60px; width:340px; height:340px; pointer-events:none; z-index:0; opacity:0.06;">
-    <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-      <polygon points="100,10 185,55 185,145 100,190 15,145 15,55" fill="none" stroke="#818cf8" stroke-width="1.5"/>
-      <polygon points="100,30 165,67 165,133 100,170 35,133 35,67" fill="none" stroke="#22d3ee" stroke-width="0.8"/>
-    </svg>
-  </div>
-  <div class="hex-decor hex-2" style="position:fixed; bottom:-80px; left:-80px; width:400px; height:400px; pointer-events:none; z-index:0; opacity:0.06;">
-    <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-      <polygon points="100,10 185,55 185,145 100,190 15,145 15,55" fill="none" stroke="#818cf8" stroke-width="1.5"/>
-      <polygon points="100,30 165,67 165,133 100,170 35,133 35,67" fill="none" stroke="#818cf8" stroke-width="0.6"/>
-    </svg>
-  </div>
-
   <!-- MAIN CONTENT -->
   <div class="page-wrapper" style="padding-top:40px;">
 
-    <!-- ACCOUNT SETUP CARD (shown if enrollment number is missing) -->
-    <div class="card card-wide card-glow-top" id="card-setup" style="display:none; position:relative;">
-      <div class="bracket-tr" style="position:absolute; width:18px; height:18px; border:solid rgba(34,211,238,0.5); border-width:2px 2px 0 0; border-radius:0 16px 0 0; top:-1px; right:-1px; z-index:2;"></div>
-      <div class="bracket-bl" style="position:absolute; width:18px; height:18px; border:solid rgba(34,211,238,0.5); border-width:0 0 2px 2px; border-radius:0 0 0 16px; bottom:-1px; left:-1px; z-index:2;"></div>
-      <div class="sys-header" style="display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:24px;">
-        <div class="sys-line" style="flex:1; height:1px; background:linear-gradient(90deg, transparent, var(--border3)); max-width:60px;"></div>
-        <div class="sys-tag" style="font-family:var(--font-mono); font-size:9.5px; color:var(--text-muted); letter-spacing:1.5px; uppercase;">STUDENT SETUP</div>
-        <div class="sys-line right" style="flex:1; height:1px; background:linear-gradient(270deg, transparent, var(--border3)); max-width:60px;"></div>
-      </div>
-      <div class="brand" style="margin-bottom:20px;">
-        <div class="brand-mark">
-          <div class="brand-icon">🎓</div>
-          <div class="brand-name">COMPLETE <span>PROFILE</span></div>
-        </div>
-        <div class="brand-sub">Final step to activate your student account</div>
-      </div>
-
-      <div class="section-title">Admission Details</div>
-      <div class="section-sub">Please enter your official University Enrollment Number. This cannot be changed later.</div>
-
-      <div class="form-group mt-20">
-        <label class="label">Enrollment Number</label>
-        <div class="input-wrap" style="position:relative;">
-          <span class="input-icon" style="position:absolute; left:14px; top:50%; transform:translateY(-50%); opacity:0.4;">🎓</span>
-          <input type="text" id="setup-enrollment" class="input" placeholder="e.g. 210303124xxx" style="text-transform:uppercase; padding-left:42px;">
-        </div>
-      </div>
-
-      <button class="btn btn-primary mt-20" id="btn-save-setup" onclick="saveEnrollmentNumber()">
-        → COMPLETE SETUP
-      </button>
-    </div>
-
     <!-- ENROLLMENT CARD (shown if no face data) -->
-    <div class="card card-wide card-glow-top" id="card-enroll" style="display:none; position:relative;">
-      <div class="bracket-tr" style="position:absolute; width:18px; height:18px; border:solid rgba(34,211,238,0.5); border-width:2px 2px 0 0; border-radius:0 16px 0 0; top:-1px; right:-1px; z-index:2;"></div>
-      <div class="bracket-bl" style="position:absolute; width:18px; height:18px; border:solid rgba(34,211,238,0.5); border-width:0 0 2px 2px; border-radius:0 0 0 16px; bottom:-1px; left:-1px; z-index:2;"></div>
-
-      <div class="sys-header" style="display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:24px;">
-        <div class="sys-line" style="flex:1; height:1px; background:linear-gradient(90deg, transparent, var(--border3)); max-width:60px;"></div>
-        <div class="sys-tag" style="font-family:var(--font-mono); font-size:9.5px; color:var(--text-muted); letter-spacing:1.5px; uppercase;">BIOMETRIC REGISTER</div>
-        <div class="sys-line right" style="flex:1; height:1px; background:linear-gradient(270deg, transparent, var(--border3)); max-width:60px;"></div>
-      </div>
-
+    <div class="card card-wide" id="card-enroll" style="display:none;">
       <div class="brand" style="margin-bottom:20px;">
         <div class="brand-mark">
           <div class="brand-icon">👤</div>
@@ -164,16 +105,7 @@
     </div>
 
     <!-- ATTENDANCE CARD -->
-    <div class="card card-wide card-glow-top" id="card-attend" style="display:none; position:relative;">
-      <div class="bracket-tr" style="position:absolute; width:18px; height:18px; border:solid rgba(34,211,238,0.5); border-width:2px 2px 0 0; border-radius:0 16px 0 0; top:-1px; right:-1px; z-index:2;"></div>
-      <div class="bracket-bl" style="position:absolute; width:18px; height:18px; border:solid rgba(34,211,238,0.5); border-width:0 0 2px 2px; border-radius:0 0 0 16px; bottom:-1px; left:-1px; z-index:2;"></div>
-      
-      <div class="sys-header" style="display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:24px;">
-        <div class="sys-line" style="flex:1; height:1px; background:linear-gradient(90deg, transparent, var(--border3)); max-width:60px;"></div>
-        <div class="sys-tag" style="font-family:var(--font-mono); font-size:9.5px; color:var(--text-muted); letter-spacing:1.5px; uppercase;">SECURE CHECK-IN</div>
-        <div class="sys-line right" style="flex:1; height:1px; background:linear-gradient(270deg, transparent, var(--border3)); max-width:60px;"></div>
-      </div>
-
+    <div class="card card-wide" id="card-attend" style="display:none;">
       <div class="brand" style="margin-bottom:20px;">
         <div class="brand-mark">
           <div class="brand-icon">✓</div>
@@ -204,14 +136,9 @@
 
         <div class="form-group">
           <label class="label">Session Code</label>
-          <div class="otp-container" id="otp-inputs">
-            <input type="text" maxlength="1" class="otp-box" oninput="moveFocus(this, 'next')" onkeydown="handleKey(event, this)">
-            <input type="text" maxlength="1" class="otp-box" oninput="moveFocus(this, 'next')" onkeydown="handleKey(event, this)">
-            <input type="text" maxlength="1" class="otp-box" oninput="moveFocus(this, 'next')" onkeydown="handleKey(event, this)">
-            <input type="text" maxlength="1" class="otp-box" oninput="moveFocus(this, 'next')" onkeydown="handleKey(event, this)">
-            <input type="text" maxlength="1" class="otp-box" oninput="moveFocus(this, 'next')" onkeydown="handleKey(event, this)">
-            <input type="text" maxlength="1" class="otp-box" oninput="moveFocus(this, 'next')" onkeydown="handleKey(event, this)">
-          </div>
+          <input type="text" id="otp-input" placeholder="ABC123"
+            maxlength="6" style="font-family:var(--font-mono); font-size:22px; letter-spacing:6px; text-transform:uppercase; text-align:center;"
+            oninput="this.value=this.value.toUpperCase()" />
         </div>
 
         <button class="btn btn-primary" id="btn-verify-otp" onclick="verifyOTP()">
@@ -279,8 +206,6 @@
   <div class="toast" id="toast"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase.js"></script>
-  <script src="auth.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.13/dist/face-api.js"></script>
   <script src="config.js"></script>
   <script>
@@ -294,38 +219,15 @@
     (async () => {
       currentUser = await requireAuth('student');
       if (!currentUser) return;
-      
-      // Update UI with initial name (enrollment no might be null)
-      document.getElementById('nav-user').textContent = `${currentUser.name} ${currentUser.enrollment_number ? '· ' + currentUser.enrollment_number : ''}`;
+      document.getElementById('nav-user').textContent = `${currentUser.name} · ${currentUser.enrollment_number}`;
 
-      if (!currentUser.enrollment_number) {
-        showSetup();
-      } else if (!currentUser.face_descriptor || currentUser.face_descriptor.length === 0) {
-        showEnrollment();
-      } else {
+      if (currentUser.face_descriptor && currentUser.face_descriptor.length > 0) {
         showAttendance();
+      } else {
+        document.getElementById('card-enroll').style.display = 'block';
+        await loadFaceModels();
       }
     })();
-
-    // ─── OTP UI HELPERS ──────────────────────────────────────────────────
-    function moveFocus(el, direction) {
-      if (el.value.length === 1 && direction === 'next') {
-        const next = el.nextElementSibling;
-        if (next) next.focus();
-      }
-    }
-    function handleKey(e, el) {
-      if (e.key === 'Backspace' && el.value.length === 0) {
-        const prev = el.previousElementSibling;
-        if (prev) prev.focus();
-      }
-    }
-    function getFullOTP() {
-      const inputs = document.querySelectorAll('#otp-inputs input');
-      let val = '';
-      inputs.forEach(i => val += i.value);
-      return val.toUpperCase();
-    }
 
     async function loadFaceModels() {
       try {
@@ -339,60 +241,8 @@
       }
     }
 
-    // ─── SETUP FLOW ──────────────────────────────────────────────────
-
-    function showSetup() {
-      document.getElementById('card-setup').style.display = 'block';
-      document.getElementById('card-enroll').style.display = 'none';
-      document.getElementById('card-attend').style.display = 'none';
-    }
-
-    async function saveEnrollmentNumber() {
-      const enrollNum = document.getElementById('setup-enrollment').value.trim().toUpperCase();
-      if (!enrollNum) return toast('Enrollment number is required', 'error');
-
-      const btn = document.getElementById('btn-save-setup');
-      btn.disabled = true;
-      btn.textContent = 'SAVING...';
-
-      try {
-        const { error } = await supabase
-          .from('profiles')
-          .update({ enrollment_number: enrollNum })
-          .eq('id', currentUser.id);
-
-        if (error) {
-          if (error.code === '23505') throw new Error('This enrollment number is already registered.');
-          throw error;
-        }
-
-        toast('Profile updated successfully!', 'success');
-        currentUser.enrollment_number = enrollNum;
-        
-        // Update Nav
-        document.getElementById('nav-user').textContent = `${currentUser.name} · ${currentUser.enrollment_number}`;
-
-        // Proceed to Enrollment or Attendance
-        if (!currentUser.face_descriptor || currentUser.face_descriptor.length === 0) {
-          showEnrollment();
-        } else {
-          showAttendance();
-        }
-      } catch (e) {
-        toast(e.message, 'error');
-        btn.disabled = false;
-        btn.textContent = '→ COMPLETE SETUP';
-      }
-    }
-
     // ─── ENROLLMENT FLOW ─────────────────────────────────────────────────
 
-    function showEnrollment() {
-      document.getElementById('card-setup').style.display = 'none';
-      document.getElementById('card-enroll').style.display = 'block';
-      document.getElementById('card-attend').style.display = 'none';
-      loadFaceModels();
-    }
     async function checkGPSForEnroll() {
       const btn = document.getElementById('btn-check-gps-enroll');
       btn.disabled = true;
@@ -480,39 +330,53 @@
     async function captureEnroll() {
       const btn = document.getElementById('btn-capture-enroll');
       btn.disabled = true;
-      btn.textContent = 'ANALYZING...';
-      document.getElementById('cam-status-enroll').textContent = 'Analyzing face features...';
+      btn.textContent = 'DETECTING...';
+      document.getElementById('cam-status-enroll').textContent = 'Detecting face...';
 
-      // ─── DEMO MODE BYPASS ───
-      // We simulate a successful capture to avoid hardware/lighting issues during demo.
-      setTimeout(async () => {
-        try {
-          // Create a mock descriptor (128 random numbers)
-          const mockDescriptor = Array.from({length: 128}, () => Math.random());
-          
-          const { error } = await supabase.from('profiles').update({
-            face_descriptor: mockDescriptor,
-            enrolled_at: new Date().toISOString()
-          }).eq('id', currentUser.id);
+      try {
+        const video = document.getElementById('video-enroll');
+        const detection = await faceapi
+          .detectSingleFace(video)
+          .withFaceLandmarks()
+          .withFaceDescriptor();
 
-          if (error) throw error;
-
-          if (enrollStream) enrollStream.getTracks().forEach(t => t.stop());
-
-          document.getElementById('enroll-step-2').style.display = 'none';
-          document.getElementById('enroll-step-3').style.display = 'block';
-          document.getElementById('s2').classList.remove('active');
-          document.getElementById('s2').classList.add('done');
-          document.getElementById('s3').classList.add('active');
-
-          toast('Face successfully enrolled (Demo Mode) ✓', 'success');
-          currentUser.face_descriptor = mockDescriptor;
-        } catch (e) {
-          toast('Error: ' + e.message, 'error');
+        if (!detection) {
+          toast('No face detected. Adjust lighting and position.', 'warn');
           btn.disabled = false;
           btn.innerHTML = '◉ CAPTURE';
+          document.getElementById('cam-status-enroll').textContent = 'Position your face in the frame';
+          return;
         }
-      }, 1500);
+
+        const descriptor = Array.from(detection.descriptor);
+        document.getElementById('cam-status-enroll').textContent = 'Face detected! Saving...';
+
+        // Save descriptor to Supabase
+        const { error } = await supabase.from('profiles').update({
+          face_descriptor: descriptor,
+          enrolled_at: new Date().toISOString()
+        }).eq('id', currentUser.id);
+
+        if (error) throw error;
+
+        // Stop camera
+        enrollStream.getTracks().forEach(t => t.stop());
+
+        // Step 3
+        document.getElementById('enroll-step-2').style.display = 'none';
+        document.getElementById('enroll-step-3').style.display = 'block';
+        document.getElementById('s2').classList.remove('active');
+        document.getElementById('s2').classList.add('done');
+        document.getElementById('s3').classList.add('active');
+
+        toast('Face enrolled successfully ✓', 'success');
+        currentUser.face_descriptor = descriptor;
+
+      } catch (e) {
+        toast('Error: ' + e.message, 'error');
+        btn.disabled = false;
+        btn.innerHTML = '◉ CAPTURE';
+      }
     }
 
     function retakeEnroll() {
@@ -529,8 +393,8 @@
     }
 
     async function verifyOTP() {
-      const otp = getFullOTP();
-      if (otp.length < 4) return toast('Enter the full session code', 'error');
+      const otp = document.getElementById('otp-input').value.trim().toUpperCase();
+      if (otp.length < 4) return toast('Enter the session code', 'error');
 
       const btn = document.getElementById('btn-verify-otp');
       btn.disabled = true;
@@ -539,7 +403,7 @@
       const now = new Date().toISOString();
       const { data: sessions, error } = await supabase
         .from('sessions')
-        .select('*, batches(name)')
+        .select('*')
         .eq('otp', otp)
         .gt('expires_at', now)
         .single();
@@ -577,7 +441,7 @@
       document.getElementById('as2').classList.add('active');
 
       document.getElementById('session-subject-text').innerHTML =
-        `Session: <strong>${activeSession.subject}</strong> <span class="text-muted" style="font-size:12px;">(${activeSession.batches?.name || 'General'})</span>`;
+        `Session: <strong>${activeSession.subject}</strong>`;
     }
 
     async function checkGPSForAttend() {
@@ -653,12 +517,34 @@
       document.getElementById('verify-icon').textContent = '⏳';
       document.getElementById('verify-text').textContent = 'Matching face...';
 
-      // ─── DEMO MODE BYPASS ───
-      // We simulate a successful match to allow marking attendance without face-api failures.
-      setTimeout(async () => {
-        try {
+      try {
+        const video = document.getElementById('video-attend');
+        const detection = await faceapi
+          .detectSingleFace(video)
+          .withFaceLandmarks()
+          .withFaceDescriptor();
+
+        if (!detection) {
+          toast('No face detected. Try again.', 'warn');
+          document.getElementById('verify-icon').textContent = '⚠️';
+          document.getElementById('verify-text').textContent = 'No face detected';
+          btn.disabled = false;
+          btn.innerHTML = '◉ VERIFY MY FACE';
+          return;
+        }
+
+        // Load stored descriptor
+        const stored = new Float32Array(currentUser.face_descriptor);
+        const live = detection.descriptor;
+
+        // Euclidean distance
+        const dist = faceapi.euclideanDistance(stored, live);
+        console.log('Face distance:', dist);
+
+        if (dist < 0.55) {
+          // MATCH — mark attendance
           document.getElementById('verify-icon').textContent = '✅';
-          document.getElementById('verify-text').innerHTML = `Face matched (Demo Mode Bypass)`;
+          document.getElementById('verify-text').innerHTML = `Face matched · <strong>Distance: ${dist.toFixed(3)}</strong>`;
 
           const { error } = await supabase.from('attendance').insert({
             student_id: currentUser.id,
@@ -667,27 +553,43 @@
             enrollment_number: currentUser.enrollment_number,
           });
 
-          if (error && error.code !== '23505') throw error;
+          if (error) {
+            if (error.code === '23505') {
+              toast('Already marked for this session!', 'warn');
+            } else {
+              throw error;
+            }
+          } else {
+            attendStream.getTracks().forEach(t => t.stop());
+            document.getElementById('attend-step-3').style.display = 'none';
+            document.getElementById('attend-success').style.display = 'block';
+            document.getElementById('success-session-info').textContent =
+              `Subject: ${activeSession.subject}`;
+            document.getElementById('success-time').textContent =
+              `Marked at ${new Date().toLocaleTimeString()}`;
+            toast('Attendance marked ✓', 'success');
+          }
 
-          if (attendStream) attendStream.getTracks().forEach(t => t.stop());
-          document.getElementById('attend-step-3').style.display = 'none';
-          document.getElementById('attend-success').style.display = 'block';
-          document.getElementById('success-session-info').textContent =
-            `${activeSession.subject} — ${activeSession.batches?.name || 'General'}`;
-          document.getElementById('success-time').textContent =
-            `Marked at ${new Date().toLocaleTimeString()}`;
-          
-          toast('Attendance marked successfully ✓', 'success');
-        } catch (e) {
-          toast('Error: ' + e.message, 'error');
+        } else {
+          document.getElementById('verify-icon').textContent = '❌';
+          document.getElementById('verify-text').innerHTML =
+            `Face not recognized · <strong>Distance: ${dist.toFixed(3)}</strong>`;
+          toast('Face does not match. Try again.', 'error');
           btn.disabled = false;
           btn.innerHTML = '◉ VERIFY MY FACE';
         }
-      }, 1500);
+      } catch (e) {
+        toast('Error: ' + e.message, 'error');
+        btn.disabled = false;
+        btn.innerHTML = '◉ VERIFY MY FACE';
+      }
     }
 
     async function doLogout() {
-      await signOut();
+      localStorage.removeItem('demo_mode');
+      localStorage.removeItem('demo_role');
+      await supabase.auth.signOut();
+      window.location.href = 'index.html';
     }
   </script>
 </body>

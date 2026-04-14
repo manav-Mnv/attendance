@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Marquee Training — Secure Portal</title>
+  <title>Marquee Training — Login</title>
   <link rel="stylesheet" href="styles.css" />
   <style>
     /* ── Login-page specific extras ── */
@@ -188,29 +188,24 @@
       pointer-events: none;
       opacity: 0.4;
     }
-    
-    .google-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      background: white;
-      color: #333;
-      font-weight: 600;
-      width: 100%;
-      padding: 14px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
+
+    /* Password toggle */
+    .toggle-pw {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--text-muted);
       cursor: pointer;
-      transition: all 0.2s ease;
+      width: auto;
+      padding: 0;
+      font-size: 14px;
+      transition: color 0.2s;
     }
-    .google-btn:hover {
-      background: #f1f1f1;
-    }
-    .google-btn img {
-      width: 20px;
-      height: 20px;
-    }
+
+    .toggle-pw:hover { color: var(--text); }
 
     /* Two-col grid */
     .form-grid-2 {
@@ -254,35 +249,36 @@
       <div class="side-feature">
         <div class="feat-icon">🔍</div>
         <div>
-          <div class="feat-title">Face Verification</div>
-          <div class="feat-desc">Instant check-ins using your unique neural descriptor.</div>
+          <div class="feat-title">Face Recognition</div>
+          <div class="feat-desc">128-point neural descriptor — no raw photo stored ever.</div>
         </div>
       </div>
       <div class="side-feature">
         <div class="feat-icon">📡</div>
         <div>
-          <div class="feat-title">Location Guard</div>
-          <div class="feat-desc">Requires physical proximity to the active classroom.</div>
+          <div class="feat-title">GPS Geofencing</div>
+          <div class="feat-desc">Must be physically within 60m of the classroom.</div>
         </div>
       </div>
       <div class="side-feature">
-        <div class="feat-icon">⚡</div>
+        <div class="feat-icon">⏱</div>
         <div>
-          <div class="feat-title">Secure Portal</div>
-          <div class="feat-desc">University-verified Google authentication for students.</div>
+          <div class="feat-title">Expiring OTPs</div>
+          <div class="feat-desc">Session codes expire automatically — zero replay attacks.</div>
         </div>
       </div>
     </div>
 
     <!-- Auth Card -->
     <div class="card" id="auth-card">
+      <!-- Extra corner brackets -->
       <div class="bracket-tr"></div>
       <div class="bracket-bl"></div>
 
       <!-- System tag -->
       <div class="sys-header">
         <div class="sys-line"></div>
-        <div class="sys-tag">STUDENT & FACULTY PORTAL</div>
+        <div class="sys-tag">SECURE AUTH v2.0</div>
         <div class="sys-line right"></div>
       </div>
 
@@ -295,100 +291,89 @@
         <div class="brand-sub">Attendance Intelligence System</div>
       </div>
 
-      <!-- Tab switcher -->
-      <div class="tab-container">
-        <button class="tab-btn active" id="tab-student" onclick="switchLoginTab('student')">STUDENT</button>
-        <button class="tab-btn" id="tab-teacher" onclick="switchLoginTab('teacher')">TEACHER</button>
-      </div>
-
-      <!-- STUDENT LOCK VIEW -->
-      <div id="view-student">
-        <div style="text-align: center; margin-bottom: 20px;">
-          <p class="text-muted" style="font-size: 14px; line-height: 1.5;">
-            Students must use their official University Google account to access attendance records.
-          </p>
-          <span class="badge badge-green" style="margin-top: 8px;">@paruluniversity.ac.in Only</span>
-        </div>
-        
-        <button class="google-btn" onclick="studentGoogleLogin()">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google Logo" />
-          <span>Sign In with University Google</span>
+      <!-- Demo bypass strip -->
+      <div class="demo-strip">
+        <button class="demo-btn" onclick="demoLogin('admin')">
+          <div class="demo-dot" style="background:#f87171;box-shadow:0 0 4px #f87171;"></div> Admin
+        </button>
+        <button class="demo-btn" onclick="demoLogin('teacher')">
+          <div class="demo-dot" style="background:#fbbf24;box-shadow:0 0 4px #fbbf24;"></div> Teacher
+        </button>
+        <button class="demo-btn" onclick="demoLogin('student')">
+          <div class="demo-dot" style="background:#34d399;box-shadow:0 0 4px #34d399;"></div> Student
         </button>
       </div>
 
-      <!-- TEACHER LOGIN VIEW -->
-      <div id="view-teacher" style="display:none;">
-        <div style="text-align: center; margin-bottom: 16px;">
-          <span class="badge badge-indigo">Faculty Portal</span>
-        </div>
+      <!-- Tab switcher -->
+      <div class="tab-container">
+        <button class="tab-btn active" id="tab-login" onclick="switchTab('login')">Login</button>
+        <button class="tab-btn" id="tab-register" onclick="switchTab('register')">Register</button>
+      </div>
+
+      <!-- LOGIN FORM -->
+      <div id="form-login">
         <div class="form-group">
-          <label class="label">Staff Email Address</label>
+          <label class="label">Email Address</label>
           <div class="input-wrap">
             <span class="input-icon">✉</span>
-            <input type="email" id="teacher-email" placeholder="faculty@university.edu" />
+            <input type="email" id="login-email" placeholder="you@college.edu" />
           </div>
         </div>
         <div class="form-group">
           <label class="label">Password</label>
           <div class="input-wrap">
             <span class="input-icon">🔒</span>
-            <input type="password" id="teacher-password" placeholder="••••••••" />
+            <input type="password" id="login-password" placeholder="••••••••" />
+            <button class="toggle-pw btn-sm" onclick="togglePw('login-password', this)" tabindex="-1">👁</button>
           </div>
         </div>
-        <button class="btn btn-primary" onclick="doTeacherLogin()">
-          <span>⚡</span> FACULTY AUTHENTICATE
+        <button class="btn btn-primary" id="login-btn" onclick="doLogin()" style="margin-top:4px;">
+          <span>⚡</span> Authenticate
         </button>
-        <p style="text-align: center; font-size: 12px; margin-top: 15px;">
-          <a href="javascript:void(0)" onclick="toggleTeacherAuth('register')" style="color: var(--accent);">Need an account? Register here</a>
-        </p>
       </div>
 
-      <!-- TEACHER REGISTER VIEW -->
-      <div id="view-teacher-register" style="display:none;">
-        <div style="text-align: center; margin-bottom: 16px;">
-          <span class="badge badge-yellow">Create Faculty Account</span>
-        </div>
+      <!-- REGISTER FORM -->
+      <div id="form-register" style="display:none;">
         <div class="form-group">
           <label class="label">Full Name</label>
           <div class="input-wrap">
             <span class="input-icon">👤</span>
-            <input type="text" id="reg-name" placeholder="Dr. John Doe" />
+            <input type="text" id="reg-name" placeholder="Your full name" />
+          </div>
+        </div>
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="label">Enrollment No.</label>
+            <input type="text" id="reg-enroll" placeholder="e.g. CS21001" />
+          </div>
+          <div class="form-group">
+            <label class="label">Role</label>
+            <select id="reg-role">
+              <option value="student">Student</option>
+              <option value="teacher">Teacher</option>
+            </select>
           </div>
         </div>
         <div class="form-group">
           <label class="label">Email Address</label>
           <div class="input-wrap">
             <span class="input-icon">✉</span>
-            <input type="email" id="reg-email" placeholder="j.doe@paruluniversity.ac.in" />
+            <input type="email" id="reg-email" placeholder="you@college.edu" />
           </div>
         </div>
         <div class="form-group">
           <label class="label">Password</label>
           <div class="input-wrap">
             <span class="input-icon">🔒</span>
-            <input type="password" id="reg-password" placeholder="••••••••" />
+            <input type="password" id="reg-password" placeholder="Min 6 characters" />
+            <button class="toggle-pw btn-sm" onclick="togglePw('reg-password', this)" tabindex="-1">👁</button>
           </div>
         </div>
-        
-        <div class="form-grid-2">
-          <div class="form-group">
-            <label class="label">Class Name</label>
-            <input type="text" id="reg-class-name" placeholder="CS Sem 3" />
-          </div>
-          <div class="form-group">
-            <label class="label">Class Code</label>
-            <input type="text" id="reg-class-code" placeholder="CS-301" />
-          </div>
-        </div>
-
-        <button class="btn btn-primary" onclick="doTeacherRegister()">
-          <span>📝</span> CREATE ACCOUNT & CLASS
+        <button class="btn btn-primary" id="register-btn" onclick="doRegister()">
+          <span>✦</span> Create Account
         </button>
-        <p style="text-align: center; font-size: 12px; margin-top: 15px;">
-          <a href="javascript:void(0)" onclick="toggleTeacherAuth('login')" style="color: var(--accent);">Already have an account? Login</a>
-        </p>
       </div>
-      
+
       <!-- Status bar -->
       <div class="status-bar">
         <div class="status-item">
@@ -403,52 +388,132 @@
           v2.0.0
         </div>
       </div>
-
     </div>
 
     <!-- Right panel (empty for centering) -->
     <div></div>
   </div>
 
+  <div class="toast" id="toast"></div>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- Load separated configurations -->
-  <script src="supabase.js"></script>
-  <script src="auth.js"></script>
-  
+  <script src="config.js"></script>
   <script>
-    function switchLoginTab(tab) {
-      document.getElementById('view-student').style.display = tab === 'student' ? 'block' : 'none';
-      document.getElementById('view-teacher').style.display = tab === 'teacher' ? 'block' : 'none';
-      document.getElementById('view-teacher-register').style.display = 'none'; // Hide register when switching tabs
-      document.getElementById('tab-student').classList.toggle('active', tab === 'student');
-      document.getElementById('tab-teacher').classList.toggle('active', tab === 'teacher');
+    function switchTab(tab) {
+      document.getElementById('form-login').style.display    = tab === 'login'    ? 'block' : 'none';
+      document.getElementById('form-register').style.display = tab === 'register' ? 'block' : 'none';
+      document.getElementById('tab-login').classList.toggle('active',    tab === 'login');
+      document.getElementById('tab-register').classList.toggle('active', tab === 'register');
     }
 
-    function toggleTeacherAuth(mode) {
-      document.getElementById('view-teacher').style.display = mode === 'login' ? 'block' : 'none';
-      document.getElementById('view-teacher-register').style.display = mode === 'register' ? 'block' : 'none';
+    function togglePw(id, btn) {
+      const inp = document.getElementById(id);
+      if (inp.type === 'password') { inp.type = 'text';     btn.textContent = '🙈'; }
+      else                         { inp.type = 'password'; btn.textContent = '👁'; }
     }
 
-    async function doTeacherLogin() {
-      const email = document.getElementById('teacher-email').value.trim();
-      const pass = document.getElementById('teacher-password').value;
-      await teacherLogin(email, pass);
+    async function doLogin() {
+      const btn   = document.getElementById('login-btn');
+      const email = document.getElementById('login-email').value.trim();
+      const pass  = document.getElementById('login-password').value;
+      if (!email || !pass) return toast('Fill all fields', 'error');
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Authenticating…';
+
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass });
+      if (error) {
+        toast(error.message, 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<span>⚡</span> Authenticate';
+        return;
+      }
+
+      const { data: profile, error: pError } = await supabase
+        .from('profiles').select('role').eq('id', data.user.id).single();
+
+      if (pError || !profile) {
+        toast('Profile missing — redirecting to repair…', 'warn');
+        setTimeout(() => { window.location.href = 'portal.html'; }, 1500);
+        return;
+      }
+
+      toast('Access granted ✓', 'success');
+      setTimeout(() => {
+        if (profile.role === 'admin')   window.location.href = 'admin.html';
+        else if (profile.role === 'teacher') window.location.href = 'teacher.html';
+        else window.location.href = 'student.html';
+      }, 800);
     }
 
-    async function doTeacherRegister() {
-      const name = document.getElementById('reg-name').value.trim();
-      const email = document.getElementById('reg-email').value.trim();
-      const pass = document.getElementById('reg-password').value;
-      const className = document.getElementById('reg-class-name').value.trim();
-      const classCode = document.getElementById('reg-class-code').value.trim();
-      
-      await teacherRegister(email, pass, name, className, classCode);
+    async function doRegister() {
+      const btn      = document.getElementById('register-btn');
+      const name     = document.getElementById('reg-name').value.trim();
+      const enroll   = document.getElementById('reg-enroll').value.trim();
+      const role     = document.getElementById('reg-role').value;
+      const email    = document.getElementById('reg-email').value.trim();
+      const password = document.getElementById('reg-password').value;
+
+      if (!name || !enroll || !email || !password) return toast('Fill all fields', 'error');
+      if (password.length < 6) return toast('Password min 6 characters', 'error');
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Creating…';
+
+      const { data, error } = await supabase.auth.signUp({ email, password });
+      if (error) {
+        toast(error.message, 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<span>✦</span> Create Account';
+        return;
+      }
+
+      if (!data.user) {
+        toast('Check your email to confirm, then login.', 'success');
+        setTimeout(() => switchTab('login'), 2000);
+        btn.disabled = false;
+        btn.innerHTML = '<span>✦</span> Create Account';
+        return;
+      }
+
+      const { error: profileError } = await supabase.from('profiles').upsert({
+        id: data.user.id, name, enrollment_number: enroll, role, email,
+      }, { onConflict: 'enrollment_number' });
+
+      if (profileError) {
+        toast(profileError.message, 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<span>✦</span> Create Account';
+        return;
+      }
+
+      toast('Account created! Please login.', 'success');
+      setTimeout(() => switchTab('login'), 1200);
+      btn.disabled = false;
+      btn.innerHTML = '<span>✦</span> Create Account';
     }
 
-    // Automatically inspects the URL/session on load for OAuth redirects or returning users.
-    window.onload = () => {
-      handleAuthCallback();
-    };
+    // Auto redirect if already logged in
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: p, error } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+        if (error) return;
+        if (p && p.role) {
+          if (p.role === 'admin')        window.location.href = 'admin.html';
+          else if (p.role === 'teacher') window.location.href = 'teacher.html';
+          else if (p.role === 'student') window.location.href = 'student.html';
+        }
+      }
+    })();
+
+    async function demoLogin(role) {
+      localStorage.setItem('demo_mode', 'true');
+      localStorage.setItem('demo_role', role);
+      if (role === 'admin')        window.location.href = 'admin.html';
+      else if (role === 'teacher') window.location.href = 'teacher.html';
+      else window.location.href = 'student.html';
+    }
   </script>
 </body>
 </html>
