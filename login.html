@@ -14,7 +14,7 @@
       grid-template-columns: 1fr 420px 1fr;
       align-items: center;
       justify-items: center;
-      padding: 32px 20px;
+      padding: 20px;
       position: relative;
       z-index: 1;
     }
@@ -220,13 +220,18 @@
     }
 
     @media (max-width: 900px) {
-      .login-wrapper { grid-template-columns: 1fr; }
-      #auth-card { grid-column: 1; width: 100%; max-width: 460px; }
+      .login-wrapper { grid-template-columns: 1fr; padding: 20px; }
+      #auth-card { grid-column: 1; width: 100%; max-width: 440px; }
       .side-panel { display: none; }
+    }
+    @media (max-width: 480px) {
+      #auth-card { padding: 32px 24px; }
+      .brand-name { font-size: 22px; }
+      .sys-tag { font-size: 8px; }
     }
   </style>
 </head>
-<body>
+<body style="overflow: hidden;">
 
   <!-- Decorative hex shapes -->
   <div class="hex-decor hex-1">
@@ -255,21 +260,21 @@
         <div class="feat-icon">🔍</div>
         <div>
           <div class="feat-title">Face Verification</div>
-          <div class="feat-desc">Instant check-ins using your unique neural descriptor.</div>
+          <div class="feat-desc">Instant check-ins using neural descriptors.</div>
         </div>
       </div>
       <div class="side-feature">
         <div class="feat-icon">📡</div>
         <div>
           <div class="feat-title">Location Guard</div>
-          <div class="feat-desc">Requires physical proximity to the active classroom.</div>
+          <div class="feat-desc">Requires classroom proximity.</div>
         </div>
       </div>
       <div class="side-feature">
         <div class="feat-icon">⚡</div>
         <div>
           <div class="feat-title">Secure Portal</div>
-          <div class="feat-desc">University-verified Google authentication for students.</div>
+          <div class="feat-desc">Verified Google authentication.</div>
         </div>
       </div>
     </div>
@@ -304,25 +309,22 @@
       <!-- STUDENT LOCK VIEW -->
       <div id="view-student">
         <div style="text-align: center; margin-bottom: 20px;">
-          <p class="text-muted" style="font-size: 14px; line-height: 1.5;">
-            Students must use their official University Google account to access attendance records.
+          <p class="text-muted" style="font-size: 14px;">
+            Students must use their official University Google account.
           </p>
-          <span class="badge badge-green" style="margin-top: 8px;">@paruluniversity.ac.in Only</span>
+          <span class="badge badge-green" style="margin-top: 8px; text-transform: none;">@paruluniversity.ac.in only</span>
         </div>
         
         <button class="google-btn" onclick="studentGoogleLogin()">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google Logo" />
+          <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="G" />
           <span>Sign In with University Google</span>
         </button>
       </div>
 
       <!-- TEACHER LOGIN VIEW -->
       <div id="view-teacher" style="display:none;">
-        <div style="text-align: center; margin-bottom: 16px;">
-          <span class="badge badge-indigo">Faculty Portal</span>
-        </div>
         <div class="form-group">
-          <label class="label">Staff Email Address</label>
+          <label class="label">Staff Email</label>
           <div class="input-wrap">
             <span class="input-icon">✉</span>
             <input type="email" id="teacher-email" placeholder="faculty@university.edu" />
@@ -336,30 +338,27 @@
           </div>
         </div>
         <button class="btn btn-primary" onclick="doTeacherLogin()">
-          <span>⚡</span> FACULTY AUTHENTICATE
+          AUTHENTICATE
         </button>
         <p style="text-align: center; font-size: 12px; margin-top: 15px;">
-          <a href="javascript:void(0)" onclick="toggleTeacherAuth('register')" style="color: var(--accent);">Need an account? Register here</a>
+          <a href="javascript:void(0)" onclick="toggleTeacherAuth('register')" style="color: var(--accent);">Need an account?</a>
         </p>
       </div>
 
       <!-- TEACHER REGISTER VIEW -->
       <div id="view-teacher-register" style="display:none;">
-        <div style="text-align: center; margin-bottom: 16px;">
-          <span class="badge badge-yellow">Create Faculty Account</span>
-        </div>
         <div class="form-group">
           <label class="label">Full Name</label>
           <div class="input-wrap">
             <span class="input-icon">👤</span>
-            <input type="text" id="reg-name" placeholder="Dr. John Doe" />
+            <input type="text" id="reg-name" placeholder="Name" />
           </div>
         </div>
         <div class="form-group">
-          <label class="label">Email Address</label>
+          <label class="label">Email</label>
           <div class="input-wrap">
             <span class="input-icon">✉</span>
-            <input type="email" id="reg-email" placeholder="j.doe@paruluniversity.ac.in" />
+            <input type="email" id="reg-email" placeholder="Email" />
           </div>
         </div>
         <div class="form-group">
@@ -372,46 +371,45 @@
         
         <div class="form-grid-2">
           <div class="form-group">
-            <label class="label">Class Name</label>
-            <input type="text" id="reg-class-name" placeholder="CS Sem 3" />
+            <label class="label">Class</label>
+            <input type="text" id="reg-class-name" placeholder="Class" />
           </div>
           <div class="form-group">
-            <label class="label">Class Code</label>
-            <input type="text" id="reg-class-code" placeholder="CS-301" />
+            <label class="label">Code</label>
+            <input type="text" id="reg-class-code" placeholder="Code" />
           </div>
         </div>
 
         <button class="btn btn-primary" onclick="doTeacherRegister()">
-          <span>📝</span> CREATE ACCOUNT & CLASS
+          CREATE ACCOUNT
         </button>
         <p style="text-align: center; font-size: 12px; margin-top: 15px;">
-          <a href="javascript:void(0)" onclick="toggleTeacherAuth('login')" style="color: var(--accent);">Already have an account? Login</a>
+          <a href="javascript:void(0)" onclick="toggleTeacherAuth('login')" style="color: var(--accent);">Back to Login</a>
         </p>
       </div>
       
       <!-- Status bar -->
       <div class="status-bar">
-        <div class="status-item">
-          <div class="status-led"></div>
-          System Online
-        </div>
-        <div class="status-item">
-          <div class="status-led yellow"></div>
-          Supabase Connected
-        </div>
-        <div class="status-item" style="font-size:9px; opacity:0.5;">
-          v2.0.0
-        </div>
+        <div class="status-item"><div class="status-led"></div> Online</div>
+        <div class="status-item"><div class="status-led yellow"></div> Supabase</div>
+        <div class="status-item" style="opacity:0.5;">v2.0</div>
       </div>
 
     </div>
 
-    <!-- Right panel (empty for centering) -->
-    <div></div>
+    <!-- Right panel (footer in desktop) -->
+    <div style="align-self: end; padding-bottom: 20px;"></div>
   </div>
 
+  <footer class="sys-footer" style="position: fixed; bottom: 0; left: 0; right: 0; padding: 15px; border-top: 1px solid var(--border); background: var(--bg); margin-top: 0;">
+    <div class="footer-credit" style="margin-bottom: 5px;">Developed with ⚡ by</div>
+    <div class="footer-links">
+      <a href="https://github.com/navyachacheriya07" target="_blank">@NavyaChacheriya (Nav)</a>
+      <a href="https://github.com/manav-Mnv/" target="_blank">@Manav (Mnv)</a>
+    </div>
+  </footer>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- Load separated configurations -->
   <script src="supabase.js"></script>
   <script src="auth.js"></script>
   
@@ -419,7 +417,7 @@
     function switchLoginTab(tab) {
       document.getElementById('view-student').style.display = tab === 'student' ? 'block' : 'none';
       document.getElementById('view-teacher').style.display = tab === 'teacher' ? 'block' : 'none';
-      document.getElementById('view-teacher-register').style.display = 'none'; // Hide register when switching tabs
+      document.getElementById('view-teacher-register').style.display = 'none';
       document.getElementById('tab-student').classList.toggle('active', tab === 'student');
       document.getElementById('tab-teacher').classList.toggle('active', tab === 'teacher');
     }
@@ -441,14 +439,10 @@
       const pass = document.getElementById('reg-password').value;
       const className = document.getElementById('reg-class-name').value.trim();
       const classCode = document.getElementById('reg-class-code').value.trim();
-      
       await teacherRegister(email, pass, name, className, classCode);
     }
 
-    // Automatically inspects the URL/session on load for OAuth redirects or returning users.
-    window.onload = () => {
-      handleAuthCallback();
-    };
+    window.onload = () => { handleAuthCallback(); };
   </script>
 </body>
 </html>
