@@ -674,7 +674,7 @@
           document.getElementById('attend-step-3').style.display = 'none';
           document.getElementById('attend-success').style.display = 'block';
           document.getElementById('success-session-info').textContent =
-            `${activeSession.subject} — ${activeSession.batches?.name || 'General'}`;
+            `${activeSession.subject} — ${activeSession.batches?.name || 'All Batches'}`;
           document.getElementById('success-time').textContent =
             `Marked at ${new Date().toLocaleTimeString()}`;
           
