@@ -1468,3 +1468,33 @@ a:hover { opacity: 0.7; }
   width: 140%; height: 160%;
   background: radial-gradient(ellipse at center, rgba(129,140,248,0.06) 0%, transparent 65%);
 }
+/* OTP BOXES */
+.otp-container { 
+  display: flex !important; 
+  flex-direction: row !important;
+  gap: 10px; 
+  justify-content: center; 
+  margin: 20px 0; 
+  padding: 0; 
+}
+.otp-box { 
+  width: 44px !important; 
+  height: 54px !important; 
+  text-align: center; 
+  font-family: var(--font-mono); 
+  font-size: 22px; 
+  font-weight: 700; 
+  color: var(--text); 
+  background: var(--surface2); 
+  border: 1px solid var(--border2); 
+  border-radius: 8px; 
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.4); 
+  outline: none; 
+  transition: all 0.2s ease; 
+  flex-shrink: 0;
+  padding: 0 !important;
+}
+.otp-box:focus { 
+  border-color: var(--accent); 
+  box-shadow: 0 0 12px rgba(34,211,238,0.2), inset 0 2px 4px rgba(0,0,0,0.4); 
+}
