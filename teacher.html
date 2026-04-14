@@ -48,7 +48,7 @@
         
         <div class="sys-header" style="display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:24px;">
           <div class="sys-line" style="flex:1; height:1px; background:linear-gradient(90deg, transparent, var(--border3)); max-width:60px;"></div>
-          <div class="sys-tag" style="font-family:var(--font-mono); font-size:9.5px; color:var(--text-muted); letter-spacing:1.5px; uppercase;">SESSION CONTROL</div>
+          <div class="sys-tag" style="font-family:var(--font-mono); font-size:9.5px; color:var(--text-muted); letter-spacing:1.5px; text-transform: uppercase;">SESSION CONTROL</div>
           <div class="sys-line right" style="flex:1; height:1px; background:linear-gradient(270deg, transparent, var(--border3)); max-width:60px;"></div>
         </div>
 
@@ -120,7 +120,7 @@
         
         <div class="sys-header" style="display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:24px;">
           <div class="sys-line" style="flex:1; height:1px; background:linear-gradient(90deg, transparent, var(--border3)); max-width:60px;"></div>
-          <div class="sys-tag" style="font-family:var(--font-mono); font-size:9.5px; color:var(--text-muted); letter-spacing:1.5px; uppercase;">LIVE RADAR</div>
+          <div class="sys-tag" style="font-family:var(--font-mono); font-size:9.5px; color:var(--text-muted); letter-spacing:1.5px; text-transform: uppercase;">LIVE RADAR</div>
           <div class="sys-line right" style="flex:1; height:1px; background:linear-gradient(270deg, transparent, var(--border3)); max-width:60px;"></div>
         </div>
 
@@ -284,10 +284,10 @@
 
     async function loadBatches() {
       // Fetch the fixed batches from the database
-      const { data, error } = await supabase.from('batches')
+      const { data, error } = await window.safeCall(() => supabase.from('batches')
         .select('*')
         .eq('teacher_id', currentUser.id)
-        .order('name');
+        .order('name'));
       
       if (error) return console.error('Error loading batches:', error);
       
@@ -337,7 +337,7 @@
       const otp = generateOTP();
       const expiresAt = new Date(Date.now() + duration * 60000).toISOString();
 
-      const { data, error } = await supabase.from('sessions').insert({
+      const { data, error } = await window.safeCall(() => supabase.from('sessions').insert({
         otp,
         subject,
         teacher_id: currentUser.id,
@@ -346,7 +346,7 @@
         location_lng: lng,
         radius_meters: radius,
         expires_at: expiresAt,
-      }).select().single();
+      }).select().single());
 
       if (error) {
         toast(error.message, 'error');
@@ -400,20 +400,20 @@
 
     async function refreshAttendCount() {
       if (!activeSession) return;
-      const { count } = await supabase.from('attendance')
+      const { count } = await window.safeCall(() => supabase.from('attendance')
         .select('*', { count: 'exact', head: true })
-        .eq('session_id', activeSession.id);
+        .eq('session_id', activeSession.id));
       document.getElementById('attend-count').textContent = count || 0;
     }
 
     async function checkActiveSession() {
       const now = new Date().toISOString();
-      const { data } = await supabase.from('sessions')
+      const { data } = await window.safeCall(() => supabase.from('sessions')
         .select('*')
         .eq('teacher_id', currentUser.id)
         .gt('expires_at', now)
         .order('created_at', { ascending: false })
-        .limit(1);
+        .limit(1));
 
       if (data && data.length > 0) {
         activeSession = data[0];
@@ -423,9 +423,9 @@
 
     async function endSession() {
       if (!activeSession) return;
-      const { error } = await supabase.from('sessions')
+      const { error } = await window.safeCall(() => supabase.from('sessions')
         .update({ expires_at: new Date().toISOString() })
-        .eq('id', activeSession.id);
+        .eq('id', activeSession.id));
 
       if (!error) {
         activeSession = null;
@@ -442,10 +442,10 @@
 
     // ─── ATTENDANCE TABLE ──────────────────────────────────────────────────
     async function loadSessions() {
-      const { data } = await supabase.from('sessions')
+      const { data } = await window.safeCall(() => supabase.from('sessions')
         .select('id, subject, created_at')
         .eq('teacher_id', currentUser.id)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false }));
 
       const select = document.getElementById('filter-session');
       if (data) {
@@ -476,7 +476,7 @@
         query = query.gte('marked_at', start).lte('marked_at', end);
       }
 
-      const { data, error } = await query;
+      const { data, error } = await window.safeCall(() => query);
       if (error) return toast(error.message, 'error');
 
       allRecords = data || [];
@@ -614,22 +614,22 @@
       // Try to find the student profile if name is blank
       let studentId = null;
       if (!name) {
-        const { data: profile } = await supabase.from('profiles').select('id, name').eq('enrollment_number', enrollNum).single();
+        const { data: profile } = await window.safeCall(() => supabase.from('profiles').select('id, name').eq('enrollment_number', enrollNum).single());
         if (profile) {
           name = profile.name;
           studentId = profile.id;
         }
       } else {
-        const { data: profile } = await supabase.from('profiles').select('id').eq('enrollment_number', enrollNum).single();
+        const { data: profile } = await window.safeCall(() => supabase.from('profiles').select('id').eq('enrollment_number', enrollNum).single());
         if (profile) studentId = profile.id;
       }
 
-      const { error } = await supabase.from('attendance').insert({
+      const { error } = await window.safeCall(() => supabase.from('attendance').insert({
         student_id: studentId, // can be null if student hasn't registered yet
         session_id: activeSession.id,
         student_name: name || `Manual Entry (${enrollNum})`,
         enrollment_number: enrollNum
-      });
+      }));
 
       if (error) {
         if (error.code === '23505') toast('Student already marked present', 'warn');

@@ -28,10 +28,10 @@ async function studentGoogleLogin() {
 async function teacherLogin(email, password) {
     if (!email || !password) return alert("Please enter email and password.");
 
-    const { data, error } = await window.supabase.auth.signInWithPassword({
+    const { data, error } = await window.safeCall(() => window.supabase.auth.signInWithPassword({
         email: email,
         password: password
-    });
+    }));
 
     if (error) {
         alert("Login failed: " + error.message);
@@ -46,24 +46,17 @@ async function teacherLogin(email, password) {
  * Handles teacher registration, including profile and initial batch creation.
  */
 async function teacherRegister(email, password, name, batchName, batchCode, facultyCode) {
-    const SECRET_KEY = "PARUL-FACULTY-2026"; // Hardcoded for demo - share this with teachers
-    
     if (!email || !password || !name || !batchName || !batchCode || !facultyCode) {
         return alert("Please fill in all fields including the Faculty Secret Code.");
     }
 
-    // LAYER 1: Secret Key Check
-    if (facultyCode !== SECRET_KEY) {
-        return alert("Invalid Faculty Secret Code. Unauthorized registration blocked.");
-    }
-
-    // LAYER 2: Domain Check (Consistency with student rules)
+    // LAYER 1: Domain Check (Consistency with student rules)
     if (!email.endsWith(ALLOWED_DOMAIN)) {
         return alert(`Teachers must also use their official ${ALLOWED_DOMAIN} email.`);
     }
 
     // 1. Create the Auth User
-    const { data, error } = await window.supabase.auth.signUp({
+    const { data, error } = await window.safeCall(() => window.supabase.auth.signUp({
         email: email,
         password: password,
         options: {
@@ -71,7 +64,7 @@ async function teacherRegister(email, password, name, batchName, batchCode, facu
                 full_name: name
             }
         }
-    });
+    }));
 
     if (error) {
         alert("Registration failed: " + error.message);
@@ -84,26 +77,27 @@ async function teacherRegister(email, password, name, batchName, batchCode, facu
         return;
     }
 
-    // 2. Create the Profile
-    const { error: profileError } = await window.supabase.from('profiles').insert({
-        id: user.id,
-        name: name,
-        email: email,
-        role: 'teacher'
-    });
-
+    // 2. Secure Profile Creation (via server-side RPC)
+    // This atomic operation prevents users from self-promoting to teachers via client-side RLS bypass.
+    const { data: profileSuccess, error: profileError } = await window.safeCall(() => window.supabase.rpc('create_teacher_profile', { 
+        profile_id: user.id,
+        profile_name: name,
+        profile_email: email,
+        faculty_code: facultyCode 
+    }));
+    
     if (profileError) {
         console.error("Profile creation error:", profileError);
-        alert("Account created, but profile setup failed. Please contact support.");
+        alert("Account created, but profile setup failed: " + profileError.message);
         return;
     }
 
     // 3. Create the Initial Batch
-    const { error: batchError } = await window.supabase.from('batches').insert({
+    const { error: batchError } = await window.safeCall(() => window.supabase.from('batches').insert({
         batch_code: batchCode,
         name: batchName,
         teacher_id: user.id
-    });
+    }));
 
     if (batchError) {
         console.error("Batch creation error:", batchError);
@@ -120,7 +114,7 @@ async function teacherRegister(email, password, name, batchName, batchCode, facu
  * This should be called on the login page's load event.
  */
 async function handleAuthCallback() {
-    const { data: { session }, error } = await window.supabase.auth.getSession();
+    const { data: { session }, error } = await window.safeCall(() => window.supabase.auth.getSession());
     
     if (error) {
         console.error("Session error:", error);
@@ -142,11 +136,11 @@ async function verifyAndRouteUser(user) {
     const email = user.email;
 
     // First check if a profile already exists for this user
-    const { data: profile, error: profileError } = await window.supabase
+    const { data: profile, error: profileError } = await window.safeCall(() => window.supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
-        .single();
+        .single());
 
     if (profileError && profileError.code !== 'PGRST116') {
         // PGRST116 is "No rows found". Any other error is a real issue.
@@ -186,12 +180,12 @@ async function verifyAndRouteUser(user) {
         // Auto-create Student Profile
         const name = user.user_metadata?.full_name || email.split('@')[0]; // Extract name from Google metadata
 
-        const { error: insertError } = await window.supabase.from('profiles').insert({
+        const { error: insertError } = await window.safeCall(() => window.supabase.from('profiles').insert({
             id: user.id,
             name: name,
             email: email,
             role: 'student'
-        });
+        }));
 
         if (insertError) {
             console.error("Profile creation failed:", insertError);
@@ -210,18 +204,18 @@ async function verifyAndRouteUser(user) {
  * Checks if the valid session exists AND if the profile matches the required role.
  */
 async function requireAuth(requiredRole) {
-    const { data: { session } } = await window.supabase.auth.getSession();
+    const { data: { session } } = await window.safeCall(() => window.supabase.auth.getSession());
     
     if (!session) {
         window.location.href = 'login.html';
         return null;
     }
 
-    const { data: profile } = await window.supabase
+    const { data: profile } = await window.safeCall(() => window.supabase
         .from('profiles')
         .select('*')
         .eq('id', session.user.id)
-        .single();
+        .single());
     
     if (!profile || profile.role !== requiredRole) {
         // Intruders are booted to login.

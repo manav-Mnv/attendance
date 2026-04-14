@@ -44,7 +44,7 @@
       <div class="bracket-bl" style="position:absolute; width:18px; height:18px; border:solid rgba(34,211,238,0.5); border-width:0 0 2px 2px; border-radius:0 0 0 16px; bottom:-1px; left:-1px; z-index:2;"></div>
       <div class="sys-header" style="display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:24px;">
         <div class="sys-line" style="flex:1; height:1px; background:linear-gradient(90deg, transparent, var(--border3)); max-width:60px;"></div>
-        <div class="sys-tag" style="font-family:var(--font-mono); font-size:9.5px; color:var(--text-muted); letter-spacing:1.5px; uppercase;">STUDENT SETUP</div>
+        <div class="sys-tag" style="font-family:var(--font-mono); font-size:9.5px; color:var(--text-muted); letter-spacing:1.5px; text-transform: uppercase;">STUDENT SETUP</div>
         <div class="sys-line right" style="flex:1; height:1px; background:linear-gradient(270deg, transparent, var(--border3)); max-width:60px;"></div>
       </div>
       <div class="brand" style="margin-bottom:20px;">
@@ -78,7 +78,7 @@
 
       <div class="sys-header" style="display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:24px;">
         <div class="sys-line" style="flex:1; height:1px; background:linear-gradient(90deg, transparent, var(--border3)); max-width:60px;"></div>
-        <div class="sys-tag" style="font-family:var(--font-mono); font-size:9.5px; color:var(--text-muted); letter-spacing:1.5px; uppercase;">BIOMETRIC REGISTER</div>
+        <div class="sys-tag" style="font-family:var(--font-mono); font-size:9.5px; color:var(--text-muted); letter-spacing:1.5px; text-transform: uppercase;">BIOMETRIC REGISTER</div>
         <div class="sys-line right" style="flex:1; height:1px; background:linear-gradient(270deg, transparent, var(--border3)); max-width:60px;"></div>
       </div>
 
@@ -171,7 +171,7 @@
       
       <div class="sys-header" style="display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:24px;">
         <div class="sys-line" style="flex:1; height:1px; background:linear-gradient(90deg, transparent, var(--border3)); max-width:60px;"></div>
-        <div class="sys-tag" style="font-family:var(--font-mono); font-size:9.5px; color:var(--text-muted); letter-spacing:1.5px; uppercase;">SECURE CHECK-IN</div>
+        <div class="sys-tag" style="font-family:var(--font-mono); font-size:9.5px; color:var(--text-muted); letter-spacing:1.5px; text-transform: uppercase;">SECURE CHECK-IN</div>
         <div class="sys-line right" style="flex:1; height:1px; background:linear-gradient(270deg, transparent, var(--border3)); max-width:60px;"></div>
       </div>
 
@@ -357,10 +357,10 @@
       btn.textContent = 'SAVING...';
 
       try {
-        const { error } = await supabase
+        const { error } = await window.safeCall(() => supabase
           .from('profiles')
           .update({ enrollment_number: enrollNum })
-          .eq('id', currentUser.id);
+          .eq('id', currentUser.id));
 
         if (error) {
           if (error.code === '23505') throw new Error('This enrollment number is already registered.');
@@ -410,12 +410,12 @@
 
         // Check if any active session exists to get classroom coords
         const now = new Date().toISOString();
-        const { data: sessions } = await supabase
+        const { data: sessions } = await window.safeCall(() => supabase
           .from('sessions')
           .select('*')
           .gt('expires_at', now)
           .order('created_at', { ascending: false })
-          .limit(1);
+          .limit(1));
 
         if (!sessions || sessions.length === 0) {
           // No active session — allow enrollment from current position (teacher must approve)
@@ -491,10 +491,10 @@
           // Create a mock descriptor (128 random numbers)
           const mockDescriptor = Array.from({length: 128}, () => Math.random());
           
-          const { error } = await supabase.from('profiles').update({
+          const { error } = await window.safeCall(() => supabase.from('profiles').update({
             face_descriptor: mockDescriptor,
             enrolled_at: new Date().toISOString()
-          }).eq('id', currentUser.id);
+          }).eq('id', currentUser.id));
 
           if (error) throw error;
 
@@ -539,12 +539,12 @@
       btn.textContent = 'VERIFYING...';
 
       const now = new Date().toISOString();
-      const { data: sessions, error } = await supabase
+      const { data: sessions, error } = await window.safeCall(() => supabase
         .from('sessions')
         .select('*, batches(name)')
         .eq('otp', otp)
         .gt('expires_at', now)
-        .single();
+        .single());
 
       if (error || !sessions) {
         toast('Invalid or expired session code', 'error');
@@ -554,12 +554,12 @@
       }
 
       // Check if already marked
-      const { data: existing } = await supabase
+      const { data: existing } = await window.safeCall(() => supabase
         .from('attendance')
         .select('id')
         .eq('student_id', currentUser.id)
         .eq('session_id', sessions.id)
-        .single();
+        .single());
 
       if (existing) {
         toast('Attendance already marked for this session!', 'warn');
@@ -662,12 +662,12 @@
           document.getElementById('verify-icon').textContent = '✅';
           document.getElementById('verify-text').innerHTML = `Face matched (Demo Mode Bypass)`;
 
-          const { error } = await supabase.from('attendance').insert({
+          const { error } = await window.safeCall(() => supabase.from('attendance').insert({
             student_id: currentUser.id,
             session_id: activeSession.id,
             student_name: currentUser.name,
             enrollment_number: currentUser.enrollment_number,
-          });
+          }));
 
           if (error && error.code !== '23505') throw error;
 

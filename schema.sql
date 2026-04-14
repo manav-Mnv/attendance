@@ -85,6 +85,32 @@ AS $$
   );
 $$;
 
+-- Secure function to handle teacher registration (SECURITY DEFINER bypasses RLS for the insert)
+CREATE OR REPLACE FUNCTION create_teacher_profile(
+  profile_id UUID,
+  profile_name TEXT,
+  profile_email TEXT,
+  faculty_code TEXT
+)
+RETURNS BOOLEAN 
+LANGUAGE plpgsql 
+SECURITY DEFINER 
+SET search_path = public
+AS $$
+BEGIN
+  -- Verify the secret code
+  IF faculty_code != 'PARUL-FACULTY-2026' THEN
+    RAISE EXCEPTION 'Invalid faculty code';
+  END IF;
+
+  -- Create the profile with teacher role
+  INSERT INTO profiles (id, name, email, role)
+  VALUES (profile_id, profile_name, profile_email, 'teacher');
+
+  RETURN TRUE;
+END;
+$$;
+
 
 -- ============================================
 -- Row Level Security (RLS) Policies
@@ -96,10 +122,13 @@ ALTER TABLE sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE attendance ENABLE ROW LEVEL SECURITY;
 
 -- ─── PROFILES POLICIES ───
-CREATE POLICY "profiles_select" ON profiles FOR SELECT USING (true);
+CREATE POLICY "profiles_select" ON profiles FOR SELECT USING (
+  auth.uid() = id OR is_teacher() OR is_admin()
+);
 
+-- Students can only insert themselves AS a student
 CREATE POLICY "profiles_insert" ON profiles FOR INSERT WITH CHECK (
-  auth.uid() = id OR is_admin()
+  (auth.uid() = id AND role = 'student') OR is_admin()
 );
 
 CREATE POLICY "profiles_update" ON profiles FOR UPDATE USING (
@@ -118,7 +147,12 @@ CREATE POLICY "batches_update" ON batches FOR UPDATE USING (is_admin());
 CREATE POLICY "batches_delete" ON batches FOR DELETE USING (is_admin());
 
 -- ─── SESSIONS POLICIES ───
-CREATE POLICY "sessions_select" ON sessions FOR SELECT USING (auth.role() = 'authenticated');
+-- Students can only see sessions for their own batch
+CREATE POLICY "sessions_select" ON sessions FOR SELECT USING (
+  is_teacher() OR 
+  is_admin() OR 
+  (auth.role() = 'authenticated' AND batch_id IN (SELECT batch_id FROM profiles WHERE id = auth.uid()))
+);
 
 CREATE POLICY "sessions_insert" ON sessions FOR INSERT WITH CHECK (
   is_teacher() OR is_admin()
@@ -133,7 +167,10 @@ CREATE POLICY "sessions_delete" ON sessions FOR DELETE USING (
 );
 
 -- ─── ATTENDANCE POLICIES ───
-CREATE POLICY "attendance_select" ON attendance FOR SELECT USING (auth.role() = 'authenticated');
+-- Students can only see their own attendance
+CREATE POLICY "attendance_select" ON attendance FOR SELECT USING (
+  student_id = auth.uid() OR is_teacher() OR is_admin()
+);
 
 CREATE POLICY "attendance_insert" ON attendance FOR INSERT WITH CHECK (
   auth.uid() = student_id OR is_teacher() OR is_admin()
