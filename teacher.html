@@ -91,7 +91,7 @@
         </div>
 
         <div class="form-group">
-          <label class="label">Classroom Location (Auto or Manual)</label>
+          <label class="label">Batch Location (Auto or Manual)</label>
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px;">
             <div style="position:relative;">
               <span style="position:absolute; left:10px; top:12px; font-size:10px; color:var(--text-muted);">LAT</span>
@@ -323,7 +323,7 @@
       const lng = parseFloat(document.getElementById('lng').value);
 
       if (!subject) return toast('Enter a subject', 'error');
-      if (isNaN(lat) || isNaN(lng)) return toast('Set classroom location first', 'error');
+      if (isNaN(lat) || isNaN(lng)) return toast('Set batch location first', 'error');
 
       const btn = document.getElementById('btn-create');
       btn.disabled = true;

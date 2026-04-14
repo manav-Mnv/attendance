@@ -107,11 +107,11 @@
       <!-- STEP 1: GPS -->
       <div id="enroll-step-1">
         <div class="section-title">📍 Location Verification</div>
-        <div class="section-sub">We'll confirm you're physically in the classroom before enrolling your face.</div>
+        <div class="section-sub">We'll confirm you're physically in the batch area before enrolling your face.</div>
 
         <div class="info-row">
           <div class="info-row-icon">ℹ️</div>
-          <div class="info-row-text">You must be within <strong>60 meters</strong> of the registered classroom location to enroll.</div>
+          <div class="info-row-text">You must be within <strong>60 meters</strong> of the registered batch location to enroll.</div>
         </div>
 
         <div id="gps-status-enroll" class="info-row" style="display:none;">
@@ -433,14 +433,14 @@
         if (dist <= session.radius_meters) {
           document.getElementById('gps-icon-enroll').textContent = '✅';
           document.getElementById('gps-text-enroll').innerHTML =
-            `Present in classroom · <strong>${Math.round(dist)}m</strong> from center`;
+            `Present in batch area · <strong>${Math.round(dist)}m</strong> from center`;
           toast('Location verified ✓', 'success');
           setTimeout(() => startEnrollStep2(), 800);
         } else {
           document.getElementById('gps-icon-enroll').textContent = '❌';
           document.getElementById('gps-text-enroll').innerHTML =
             `Too far: <strong>${Math.round(dist)}m</strong> away (max ${session.radius_meters}m)`;
-          toast('You are not in the classroom', 'error');
+          toast('You are not in the batch area', 'error');
           btn.disabled = false;
           btn.textContent = '📍 CHECK MY LOCATION';
         }
@@ -599,14 +599,14 @@
         if (dist <= activeSession.radius_meters) {
           document.getElementById('gps-icon-attend').textContent = '✅';
           document.getElementById('gps-text-attend').innerHTML =
-            `Present · <strong>${Math.round(dist)}m</strong> from classroom`;
+            `Present · <strong>${Math.round(dist)}m</strong> from batch center`;
           toast('Location verified ✓', 'success');
           setTimeout(() => startFaceVerify(), 800);
         } else {
           document.getElementById('gps-icon-attend').textContent = '❌';
           document.getElementById('gps-text-attend').innerHTML =
             `Too far: <strong>${Math.round(dist)}m</strong> away (max ${activeSession.radius_meters}m)`;
-          toast('You must be in the classroom', 'error');
+          toast('You must be in the batch area', 'error');
           btn.disabled = false;
           btn.textContent = '📍 CHECK LOCATION';
         }

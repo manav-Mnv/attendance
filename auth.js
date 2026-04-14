@@ -45,8 +45,8 @@ async function teacherLogin(email, password) {
 /**
  * Handles teacher registration, including profile and initial batch creation.
  */
-async function teacherRegister(email, password, name, className, classCode) {
-    if (!email || !password || !name || !className || !classCode) {
+async function teacherRegister(email, password, name, batchName, batchCode) {
+    if (!email || !password || !name || !batchName || !batchCode) {
         return alert("Please fill in all fields.");
     }
 
@@ -88,14 +88,14 @@ async function teacherRegister(email, password, name, className, classCode) {
 
     // 3. Create the Initial Batch
     const { error: batchError } = await window.supabase.from('batches').insert({
-        batch_code: classCode,
-        name: className,
+        batch_code: batchCode,
+        name: batchName,
         teacher_id: user.id
     });
 
     if (batchError) {
         console.error("Batch creation error:", batchError);
-        alert("Account created, but failed to create your first class. You can add it later from the dashboard.");
+        alert("Account created, but failed to create your first batch. You can add it later from the dashboard.");
     }
 
     // 4. Route the user

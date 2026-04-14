@@ -371,12 +371,12 @@
         
         <div class="form-grid-2">
           <div class="form-group">
-            <label class="label">Class</label>
-            <input type="text" id="reg-class-name" placeholder="Class" />
+            <label class="label">Batch Name</label>
+            <input type="text" id="reg-batch-name" placeholder="e.g. CS Sem 3" />
           </div>
           <div class="form-group">
-            <label class="label">Code</label>
-            <input type="text" id="reg-class-code" placeholder="Code" />
+            <label class="label">Batch Code</label>
+            <input type="text" id="reg-batch-code" placeholder="Batch Code" />
           </div>
         </div>
 
@@ -437,9 +437,9 @@
       const name = document.getElementById('reg-name').value.trim();
       const email = document.getElementById('reg-email').value.trim();
       const pass = document.getElementById('reg-password').value;
-      const className = document.getElementById('reg-class-name').value.trim();
-      const classCode = document.getElementById('reg-class-code').value.trim();
-      await teacherRegister(email, pass, name, className, classCode);
+      const batchName = document.getElementById('reg-batch-name').value.trim();
+      const batchCode = document.getElementById('reg-batch-code').value.trim();
+      await teacherRegister(email, pass, name, batchName, batchCode);
     }
 
     window.onload = () => { handleAuthCallback(); };
