@@ -240,10 +240,10 @@
         </button>
       </div>
 
-      <!-- STEP 3: Face Verify -->
+      <!-- STEP 3: Face Verify (Auto-Scan) -->
       <div id="attend-step-3" style="display:none;">
         <div class="section-title">👁 Face Verification</div>
-        <div class="section-sub">Look directly at the camera. Keep still for 2 seconds.</div>
+        <div class="section-sub">Look directly at the camera. Stay still — scanning is automatic.</div>
 
         <div class="camera-wrap" id="camera-wrap-attend">
           <video id="video-attend" autoplay muted playsinline></video>
@@ -260,9 +260,11 @@
           <div class="info-row-text" id="verify-text">Verifying...</div>
         </div>
 
-        <button class="btn btn-primary" id="btn-verify-face" onclick="verifyFace()" disabled>
-          ◉ VERIFY MY FACE
-        </button>
+        <div id="verify-fail-actions" style="display:none; text-align:center; margin-top:12px;">
+          <button class="btn btn-primary" onclick="retryFaceVerify()">
+            ↺ TRY AGAIN
+          </button>
+        </div>
       </div>
 
       <!-- SUCCESS -->
@@ -484,36 +486,47 @@
       btn.textContent = 'ANALYZING...';
       document.getElementById('cam-status-enroll').textContent = 'Analyzing face features...';
 
-      // ─── DEMO MODE BYPASS ───
-      // We simulate a successful capture to avoid hardware/lighting issues during demo.
-      setTimeout(async () => {
-        try {
-          // Create a mock descriptor (128 random numbers)
-          const mockDescriptor = Array.from({length: 128}, () => Math.random());
-          
-          const { error } = await window.safeCall(() => supabase.from('profiles').update({
-            face_descriptor: mockDescriptor,
-            enrolled_at: new Date().toISOString()
-          }).eq('id', currentUser.id));
+      try {
+        const video = document.getElementById('video-enroll');
+        const detection = await faceapi
+          .detectSingleFace(video)
+          .withFaceLandmarks()
+          .withFaceDescriptor();
 
-          if (error) throw error;
-
-          if (enrollStream) enrollStream.getTracks().forEach(t => t.stop());
-
-          document.getElementById('enroll-step-2').style.display = 'none';
-          document.getElementById('enroll-step-3').style.display = 'block';
-          document.getElementById('s2').classList.remove('active');
-          document.getElementById('s2').classList.add('done');
-          document.getElementById('s3').classList.add('active');
-
-          toast('Face successfully enrolled (Demo Mode) ✓', 'success');
-          currentUser.face_descriptor = mockDescriptor;
-        } catch (e) {
-          toast('Error: ' + e.message, 'error');
+        if (!detection) {
+          toast('No face detected — position your face clearly and try again', 'error');
           btn.disabled = false;
           btn.innerHTML = '◉ CAPTURE';
+          document.getElementById('cam-status-enroll').textContent = 'Position your face in the frame';
+          return;
         }
-      }, 1500);
+
+        document.getElementById('cam-status-enroll').textContent = 'Face captured! Saving...';
+        const descriptor = Array.from(detection.descriptor);
+
+        const { error } = await window.safeCall(() => supabase.from('profiles').update({
+          face_descriptor: descriptor,
+          enrolled_at: new Date().toISOString()
+        }).eq('id', currentUser.id));
+
+        if (error) throw error;
+
+        if (enrollStream) enrollStream.getTracks().forEach(t => t.stop());
+
+        document.getElementById('enroll-step-2').style.display = 'none';
+        document.getElementById('enroll-step-3').style.display = 'block';
+        document.getElementById('s2').classList.remove('active');
+        document.getElementById('s2').classList.add('done');
+        document.getElementById('s3').classList.add('active');
+
+        toast('Face enrolled successfully ✓', 'success');
+        currentUser.face_descriptor = descriptor;
+      } catch (e) {
+        toast('Error: ' + e.message, 'error');
+        btn.disabled = false;
+        btn.innerHTML = '◉ CAPTURE';
+        document.getElementById('cam-status-enroll').textContent = 'Position your face in the frame';
+      }
     }
 
     function retakeEnroll() {
@@ -618,15 +631,18 @@
       }
     }
 
+    let verifyScanInterval = null;
+
     async function startFaceVerify() {
       document.getElementById('attend-step-2').style.display = 'none';
       document.getElementById('attend-step-3').style.display = 'block';
       document.getElementById('as2').classList.remove('active');
       document.getElementById('as2').classList.add('done');
       document.getElementById('as3').classList.add('active');
+      document.getElementById('verify-fail-actions').style.display = 'none';
 
       if (!modelsLoaded) {
-        document.getElementById('cam-status-attend').textContent = 'Loading models...';
+        document.getElementById('cam-status-attend').textContent = 'Loading face models...';
         await loadFaceModels();
       }
 
@@ -637,55 +653,118 @@
         await video.play();
 
         document.getElementById('scanner-attend').style.display = 'block';
-        document.getElementById('cam-status-attend').textContent = 'Look at the camera';
-        document.getElementById('btn-verify-face').disabled = false;
+        document.getElementById('cam-status-attend').textContent = 'Scanning your face...';
+
+        // Show scanning status
+        const resultRow = document.getElementById('verify-result');
+        resultRow.style.display = 'flex';
+        document.getElementById('verify-icon').textContent = '⏳';
+        document.getElementById('verify-text').textContent = 'Detecting face...';
+
+        // Auto-scan loop
+        autoVerifyFace(video);
       } catch (e) {
         toast('Camera error: ' + e.message, 'error');
       }
     }
 
-    async function verifyFace() {
-      const btn = document.getElementById('btn-verify-face');
-      btn.disabled = true;
-      btn.textContent = 'SCANNING...';
-      document.getElementById('cam-status-attend').textContent = 'Analyzing face...';
+    async function autoVerifyFace(video) {
+      let attempts = 0;
+      const maxAttempts = 10; // ~15 seconds total
+      const MATCH_THRESHOLD = 0.6; // lower = stricter
 
-      const resultRow = document.getElementById('verify-result');
-      resultRow.style.display = 'flex';
-      document.getElementById('verify-icon').textContent = '⏳';
-      document.getElementById('verify-text').textContent = 'Matching face...';
+      verifyScanInterval = setInterval(async () => {
+        attempts++;
+        document.getElementById('cam-status-attend').textContent =
+          `Scanning... (attempt ${attempts}/${maxAttempts})`;
 
-      // ─── DEMO MODE BYPASS ───
-      // We simulate a successful match to allow marking attendance without face-api failures.
-      setTimeout(async () => {
         try {
-          document.getElementById('verify-icon').textContent = '✅';
-          document.getElementById('verify-text').innerHTML = `Face matched (Demo Mode Bypass)`;
+          const detection = await faceapi
+            .detectSingleFace(video)
+            .withFaceLandmarks()
+            .withFaceDescriptor();
 
-          const { error } = await window.safeCall(() => supabase.from('attendance').insert({
-            student_id: currentUser.id,
-            session_id: activeSession.id,
-            student_name: currentUser.name,
-            enrollment_number: currentUser.enrollment_number,
-          }));
+          if (detection) {
+            clearInterval(verifyScanInterval);
+            verifyScanInterval = null;
 
-          if (error && error.code !== '23505') throw error;
+            document.getElementById('cam-status-attend').textContent = 'Face detected — verifying identity...';
+            document.getElementById('verify-text').textContent = 'Matching face with records...';
 
-          if (attendStream) attendStream.getTracks().forEach(t => t.stop());
-          document.getElementById('attend-step-3').style.display = 'none';
-          document.getElementById('attend-success').style.display = 'block';
-          document.getElementById('success-session-info').textContent =
-            `${activeSession.subject} — ${activeSession.batches?.name || 'All Batches'}`;
-          document.getElementById('success-time').textContent =
-            `Marked at ${new Date().toLocaleTimeString()}`;
-          
-          toast('Attendance marked successfully ✓', 'success');
+            // Compare with stored descriptor
+            const storedDescriptor = new Float32Array(currentUser.face_descriptor);
+            const distance = faceapi.euclideanDistance(detection.descriptor, storedDescriptor);
+            const confidence = Math.round((1 - distance) * 100);
+
+            if (distance <= MATCH_THRESHOLD) {
+              // ✅ MATCH — mark attendance
+              document.getElementById('verify-icon').textContent = '✅';
+              document.getElementById('verify-text').innerHTML =
+                `Face verified · Confidence: <strong>${confidence}%</strong>`;
+              document.getElementById('cam-status-attend').textContent = 'Identity confirmed ✓';
+              document.getElementById('scanner-attend').style.display = 'none';
+
+              try {
+                const { error } = await window.safeCall(() => supabase.from('attendance').insert({
+                  student_id: currentUser.id,
+                  session_id: activeSession.id,
+                  student_name: currentUser.name,
+                  enrollment_number: currentUser.enrollment_number,
+                }));
+
+                if (error && error.code !== '23505') throw error;
+
+                if (attendStream) attendStream.getTracks().forEach(t => t.stop());
+                document.getElementById('attend-step-3').style.display = 'none';
+                document.getElementById('attend-success').style.display = 'block';
+                document.getElementById('success-session-info').textContent =
+                  `${activeSession.subject} — ${activeSession.batches?.name || 'All Batches'}`;
+                document.getElementById('success-time').textContent =
+                  `Marked at ${new Date().toLocaleTimeString()}`;
+
+                toast('Attendance marked successfully ✓', 'success');
+              } catch (e) {
+                toast('Error saving attendance: ' + e.message, 'error');
+              }
+            } else {
+              // ❌ NO MATCH
+              document.getElementById('verify-icon').textContent = '❌';
+              document.getElementById('verify-text').innerHTML =
+                `Face did not match · Confidence: <strong>${confidence}%</strong> (need ≥ ${Math.round((1 - MATCH_THRESHOLD) * 100)}%)`;
+              document.getElementById('cam-status-attend').textContent = 'Verification failed';
+              document.getElementById('scanner-attend').style.display = 'none';
+              document.getElementById('verify-fail-actions').style.display = 'block';
+              toast('Face does not match your enrolled profile', 'error');
+            }
+            return;
+          }
         } catch (e) {
-          toast('Error: ' + e.message, 'error');
-          btn.disabled = false;
-          btn.innerHTML = '◉ VERIFY MY FACE';
+          console.log('Scan attempt error:', e);
+        }
+
+        // If max attempts reached without detecting a face
+        if (attempts >= maxAttempts) {
+          clearInterval(verifyScanInterval);
+          verifyScanInterval = null;
+          document.getElementById('verify-icon').textContent = '⚠️';
+          document.getElementById('verify-text').textContent =
+            'Could not detect a face. Ensure good lighting and face the camera.';
+          document.getElementById('cam-status-attend').textContent = 'Detection timed out';
+          document.getElementById('scanner-attend').style.display = 'none';
+          document.getElementById('verify-fail-actions').style.display = 'block';
+          toast('Face not detected — please try again', 'error');
         }
       }, 1500);
+    }
+
+    function retryFaceVerify() {
+      // Reset UI and restart auto-scan
+      document.getElementById('verify-fail-actions').style.display = 'none';
+      document.getElementById('scanner-attend').style.display = 'block';
+      document.getElementById('verify-icon').textContent = '⏳';
+      document.getElementById('verify-text').textContent = 'Detecting face...';
+      const video = document.getElementById('video-attend');
+      autoVerifyFace(video);
     }
 
     async function doLogout() {
