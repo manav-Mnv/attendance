@@ -721,10 +721,11 @@ CREATE POLICY "Admin: Manage attendance" ON attendance FOR ALL TO authenticated 
                 <div class="search-box">
                   <!-- .ac-wrap needed for autocomplete dropdown positioning -->
                   <div class="field ac-wrap" style="flex:1">
+                    <!-- Live search as user types | Arrow keys navigate dropdown | Re-filter on focus -->
                     <input type="text" id="enroll-enrollment" placeholder="e.g. 2503031461401" autocomplete="off"
-                      oninput="filterEnrollment(this.value)"     <!-- Live search as user types -->
-                      onkeydown="acKeyNav(event)"                <!-- Arrow key navigation in dropdown -->
-                      onfocus="filterEnrollment(this.value)"     <!-- Show dropdown on focus too -->
+                      oninput="filterEnrollment(this.value)"
+                      onkeydown="acKeyNav(event)"
+                      onfocus="filterEnrollment(this.value)"
                       style="font-size:18px;font-weight:700;letter-spacing:-0.01em;padding:14px 18px;" />
                     <div class="ac-dropdown" id="enroll-ac"></div> <!-- Dropdown appears here -->
                   </div>
