@@ -1308,6 +1308,16 @@ CREATE POLICY "Admin: Manage attendance" ON attendance FOR ALL TO authenticated 
     async function startKiosk() {
       if (!S.sb) return;
 
+      // ── Geo-fence gate: block scanning if geo-fence is not active ──
+      const geo = getGeoSettings();
+      if (!geo || !geo.enabled || !geo.lat) {
+        setKioskStatus('⚠ Geo-fence not set — go to Admin → Geo Fence to enable', 'error');
+        setModelTag(false);
+        document.getElementById('model-status').className = 'model-tag loading';
+        document.getElementById('model-status').innerHTML = '<div class="dot-blink" style="background:var(--error)"></div> Geo-Fence Required';
+        return; // Do NOT start camera or scanner
+      }
+
       // Load students from DB into memory (needed for face matching)
       await loadStudents();
 
@@ -1331,18 +1341,15 @@ CREATE POLICY "Admin: Manage attendance" ON attendance FOR ALL TO authenticated 
       setKioskStatus('Ready — show your face', '');
 
       // ── SCAN LOOP ──
-      // Uses requestAnimationFrame (synced to screen refresh) + 150ms delay.
-      // 150ms = ~6 checks per second, which feels instant to the user
-      // but doesn't overload the CPU on older lab PCs.
       async function kioskLoop() {
-        if (!S.kioskStream) return; // Stop if camera was turned off
-        await kioskTick();          // Do one face detection + matching
+        if (!S.kioskStream) return;
+        await kioskTick();
         S.kioskScanTimer = setTimeout(
           () => requestAnimationFrame(kioskLoop),
-          150 // Wait 150ms before next scan
+          150
         );
       }
-      kioskLoop(); // Start the loop
+      kioskLoop();
     }
 
     // Stops the kiosk camera and clears the scan loop timer
