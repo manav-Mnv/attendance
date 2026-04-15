@@ -476,6 +476,33 @@
     .step-header-sub   { font-size: 13px; color: var(--text2); font-weight: 500; }
     .student-preview { background: rgba(255,255,255,0.04); border: 1px solid var(--border2); border-radius: 16px; padding: 20px 22px; display: flex; flex-direction: column; gap: 14px; margin-bottom: 20px; }
 
+    /* ── GEO FENCE SETTINGS ── */
+    .geo-card { border-radius: 20px; padding: 28px; max-width: 560px; }
+    .geo-status { display: flex; align-items: center; gap: 10px; padding: 14px 18px; border-radius: 14px; margin-bottom: 20px; }
+    .geo-status.active { background: rgba(50,215,75,0.08); border: 1px solid rgba(50,215,75,0.2); }
+    .geo-status.inactive { background: rgba(255,69,58,0.08); border: 1px solid rgba(255,69,58,0.2); }
+    .geo-status-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .geo-status.active .geo-status-dot { background: var(--success); box-shadow: 0 0 8px var(--success); }
+    .geo-status.inactive .geo-status-dot { background: var(--error); }
+    .geo-status-text { font-size: 13px; font-weight: 600; }
+    .geo-status.active .geo-status-text { color: var(--success); }
+    .geo-status.inactive .geo-status-text { color: var(--error); }
+    .geo-coords { font-family: var(--font-mono); font-size: 12px; color: var(--text2); background: rgba(0,0,0,0.3); border-radius: 10px; padding: 12px 16px; margin-bottom: 16px; line-height: 1.8; }
+    .geo-radius-wrap { margin-bottom: 20px; }
+    .geo-radius-label { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .geo-radius-label span { font-size: 12px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.04em; }
+    .geo-radius-value { font-size: 18px; font-weight: 800; color: var(--accent); font-family: var(--font-mono); }
+    .geo-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; border-radius: 3px; background: var(--surface3); outline: none; }
+    .geo-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 22px; height: 22px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent2)); cursor: pointer; box-shadow: 0 2px 10px rgba(240,81,56,0.4); }
+    .geo-slider::-moz-range-thumb { width: 22px; height: 22px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent2)); cursor: pointer; border: none; }
+    .geo-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    .geo-toggle { display: flex; align-items: center; gap: 12px; cursor: pointer; margin-bottom: 20px; }
+    .geo-switch { position: relative; width: 48px; height: 26px; background: rgba(255,255,255,0.1); border-radius: 13px; transition: background .3s; flex-shrink: 0; }
+    .geo-switch::after { content: ''; position: absolute; width: 20px; height: 20px; border-radius: 50%; background: #fff; top: 3px; left: 3px; transition: transform .3s; }
+    .geo-switch.on { background: var(--success); }
+    .geo-switch.on::after { transform: translateX(22px); }
+    .geo-toggle-label { font-size: 14px; font-weight: 600; }
+
 
 
     /* Student info preview rows in the enroll wizard */
@@ -681,6 +708,7 @@ CREATE POLICY "Admin: Manage attendance" ON attendance FOR ALL TO authenticated 
             <button class="tab-btn active" id="tab-enroll"   onclick="switchTab('enroll')">💻 Enroll</button>
             <button class="tab-btn"        id="tab-logs"     onclick="switchTab('logs')">📋 Logs</button>
             <button class="tab-btn"        id="tab-students" onclick="switchTab('students')">👥 Members</button>
+            <button class="tab-btn"        id="tab-settings" onclick="switchTab('settings')">📍 Geo Fence</button>
           </div>
         </div>
         <div style="display:flex;gap:8px;">
@@ -815,6 +843,55 @@ CREATE POLICY "Admin: Manage attendance" ON attendance FOR ALL TO authenticated 
           <!-- Cards rendered here dynamically by loadStudents() -->
           <div class="students-grid" id="students-grid">
             <div class="empty-state">Loading students...</div>
+          </div>
+        </div>
+
+        <!-- SETTINGS TAB: Geo-fence configuration -->
+        <div id="tab-content-settings" class="hidden">
+          <div class="geo-card panel glass">
+            <div class="panel-title"><div class="panel-title-bar"></div>📍 Geo-Fence Settings</div>
+
+            <!-- Enable/Disable toggle -->
+            <div class="geo-toggle" onclick="toggleGeoFence()">
+              <div class="geo-switch" id="geo-switch"></div>
+              <span class="geo-toggle-label" id="geo-toggle-label">Geo-Fence Disabled</span>
+            </div>
+
+            <!-- Current status -->
+            <div class="geo-status inactive" id="geo-status">
+              <div class="geo-status-dot"></div>
+              <span class="geo-status-text" id="geo-status-text">No location set</span>
+            </div>
+
+            <!-- Saved coordinates display -->
+            <div class="geo-coords" id="geo-coords" style="display:none">
+              📍 Lat: <span id="geo-lat">—</span><br>
+              📍 Lng: <span id="geo-lng">—</span><br>
+              📏 Radius: <span id="geo-rad-display">100</span>m
+            </div>
+
+            <!-- Radius slider -->
+            <div class="geo-radius-wrap">
+              <div class="geo-radius-label">
+                <span>Allowed Radius</span>
+                <span class="geo-radius-value" id="geo-radius-val">100m</span>
+              </div>
+              <input type="range" class="geo-slider" id="geo-radius" min="10" max="500" value="100" step="10"
+                oninput="updateGeoRadius(this.value)" />
+              <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);font-weight:600;margin-top:4px">
+                <span>10m</span><span>250m</span><span>500m</span>
+              </div>
+            </div>
+
+            <!-- Action buttons -->
+            <div class="geo-actions">
+              <button class="btn btn-primary" onclick="setGeoLocation()" id="geo-set-btn">📍 Set My Location</button>
+              <button class="btn btn-ghost" onclick="clearGeoLocation()">🗑 Clear Location</button>
+            </div>
+
+            <div style="margin-top:20px;font-size:12px;color:var(--text3);line-height:1.7">
+              <b>How it works:</b> Set your current GPS location as the center point. Only devices within the radius you set above will be able to mark attendance. Students outside the geo-fence will be blocked.
+            </div>
           </div>
         </div>
 
@@ -1098,9 +1175,9 @@ CREATE POLICY "Admin: Manage attendance" ON attendance FOR ALL TO authenticated 
       err.style.display = 'block';
     }
 
-    // Switches between Enroll / Logs / Members tabs in the admin panel
+    // Switches between Enroll / Logs / Members / Settings tabs in the admin panel
     function switchTab(tab) {
-      ['enroll', 'logs', 'students'].forEach(t => {
+      ['enroll', 'logs', 'students', 'settings'].forEach(t => {
         // Toggle active state on tab buttons
         document.getElementById(`tab-${t}`).classList.toggle('active', t === tab);
         // Show/hide tab content panels
@@ -1115,6 +1192,7 @@ CREATE POLICY "Admin: Manage attendance" ON attendance FOR ALL TO authenticated 
         document.getElementById('log-date').value = todayStr(); // Default to today
         loadLogs();
       }
+      if (tab === 'settings') refreshGeoUI();
     }
 
     // ════════════════════════════════════════════════════════════════
@@ -1319,11 +1397,144 @@ CREATE POLICY "Admin: Manage attendance" ON attendance FOR ALL TO authenticated 
     }
 
     // ════════════════════════════════════════════════════════════════
-    //  HANDLE ATTENDANCE — with IP check
+    //  GEO-FENCE SYSTEM
+    //  Admin sets a GPS center point + radius.
+    //  Devices outside the radius are blocked from marking attendance.
+    // ════════════════════════════════════════════════════════════════
+    const GEO_KEY = 'fa_geofence'; // localStorage key
+
+    function getGeoSettings() {
+      try { return JSON.parse(localStorage.getItem(GEO_KEY)) || null; }
+      catch { return null; }
+    }
+
+    // Haversine formula: calculates distance (meters) between two GPS points
+    function haversineDistance(lat1, lon1, lat2, lon2) {
+      const R = 6371000; // Earth radius in meters
+      const toRad = d => d * Math.PI / 180;
+      const dLat = toRad(lat2 - lat1);
+      const dLon = toRad(lon2 - lon1);
+      const a = Math.sin(dLat/2) ** 2 +
+                Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon/2) ** 2;
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    }
+
+    // Returns a promise that resolves with {lat, lng} or rejects
+    function getCurrentPosition() {
+      return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) return reject(new Error('GPS not supported'));
+        navigator.geolocation.getCurrentPosition(
+          pos => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+          err => reject(err),
+          { enableHighAccuracy: true, timeout: 10000 }
+        );
+      });
+    }
+
+    // Admin clicks "Set My Location" — captures GPS and saves
+    async function setGeoLocation() {
+      const btn = document.getElementById('geo-set-btn');
+      btn.disabled = true; btn.textContent = '📡 Getting GPS…';
+      try {
+        const pos = await getCurrentPosition();
+        const radius = parseInt(document.getElementById('geo-radius').value) || 100;
+        const settings = { lat: pos.lat, lng: pos.lng, radius, enabled: true };
+        localStorage.setItem(GEO_KEY, JSON.stringify(settings));
+        refreshGeoUI();
+      } catch (e) {
+        alert('Could not get GPS location. Please allow location access and try again.\n\nError: ' + e.message);
+      } finally {
+        btn.disabled = false; btn.textContent = '📍 Set My Location';
+      }
+    }
+
+    function clearGeoLocation() {
+      if (!confirm('Clear geo-fence? Attendance will work from any location.')) return;
+      localStorage.removeItem(GEO_KEY);
+      refreshGeoUI();
+    }
+
+    function toggleGeoFence() {
+      const geo = getGeoSettings();
+      if (!geo || !geo.lat) { alert('Set a location first.'); return; }
+      geo.enabled = !geo.enabled;
+      localStorage.setItem(GEO_KEY, JSON.stringify(geo));
+      refreshGeoUI();
+    }
+
+    function updateGeoRadius(val) {
+      document.getElementById('geo-radius-val').textContent = val + 'm';
+      document.getElementById('geo-rad-display').textContent = val;
+      // Update saved settings if they exist
+      const geo = getGeoSettings();
+      if (geo && geo.lat) {
+        geo.radius = parseInt(val);
+        localStorage.setItem(GEO_KEY, JSON.stringify(geo));
+      }
+    }
+
+    // Refreshes the geo-fence UI to reflect current settings
+    function refreshGeoUI() {
+      const geo = getGeoSettings();
+      const statusEl = document.getElementById('geo-status');
+      const statusText = document.getElementById('geo-status-text');
+      const coordsEl = document.getElementById('geo-coords');
+      const switchEl = document.getElementById('geo-switch');
+      const toggleLabel = document.getElementById('geo-toggle-label');
+
+      if (geo && geo.lat) {
+        document.getElementById('geo-lat').textContent = geo.lat.toFixed(6);
+        document.getElementById('geo-lng').textContent = geo.lng.toFixed(6);
+        document.getElementById('geo-rad-display').textContent = geo.radius || 100;
+        document.getElementById('geo-radius').value = geo.radius || 100;
+        document.getElementById('geo-radius-val').textContent = (geo.radius || 100) + 'm';
+        coordsEl.style.display = 'block';
+
+        if (geo.enabled) {
+          statusEl.className = 'geo-status active';
+          statusText.textContent = `Geo-fence active — ${geo.radius || 100}m radius`;
+          switchEl.classList.add('on');
+          toggleLabel.textContent = 'Geo-Fence Enabled';
+        } else {
+          statusEl.className = 'geo-status inactive';
+          statusText.textContent = 'Geo-fence disabled (location saved)';
+          switchEl.classList.remove('on');
+          toggleLabel.textContent = 'Geo-Fence Disabled';
+        }
+      } else {
+        statusEl.className = 'geo-status inactive';
+        statusText.textContent = 'No location set';
+        coordsEl.style.display = 'none';
+        switchEl.classList.remove('on');
+        toggleLabel.textContent = 'Geo-Fence Disabled';
+      }
+    }
+
+    // Checks if current device is within the geo-fence
+    // Returns: { ok: true } or { ok: false, distance, message }
+    async function checkGeoFence() {
+      const geo = getGeoSettings();
+      if (!geo || !geo.enabled || !geo.lat) return { ok: true }; // No fence = allow
+
+      try {
+        const pos = await getCurrentPosition();
+        const dist = haversineDistance(geo.lat, geo.lng, pos.lat, pos.lng);
+        if (dist <= geo.radius) {
+          return { ok: true, distance: Math.round(dist) };
+        } else {
+          return { ok: false, distance: Math.round(dist), message: `You are ${Math.round(dist)}m away (max: ${geo.radius}m)` };
+        }
+      } catch (e) {
+        return { ok: false, distance: -1, message: 'GPS access denied — enable location' };
+      }
+    }
+
+    // ════════════════════════════════════════════════════════════════
+    //  HANDLE ATTENDANCE — with Geo-fence check
     //
     //  Flow:
     //    1. Check if already marked today (fast, in-memory)
-    //    2. Call Edge Function to verify college network (server-side IP check)
+    //    2. Check GPS geo-fence (is device within allowed radius?)
     //    3. If allowed: insert attendance record into Supabase
     //    4. Show success/warning feedback to the user
     // ════════════════════════════════════════════════════════════════
@@ -1332,8 +1543,6 @@ CREATE POLICY "Admin: Manage attendance" ON attendance FOR ALL TO authenticated 
       const timeNow = new Date().toTimeString().substring(0, 8); // "HH:MM:SS"
 
       // ── Step 1: Fast in-memory check ──
-      // If this student already marked attendance today (on this device),
-      // we know without hitting the DB. Much faster.
       if (S.markedToday.has(student.id)) {
         setKioskStatus('Already marked today', 'warn');
         showResultCard(student, 'Already marked today', false);
@@ -1341,44 +1550,19 @@ CREATE POLICY "Admin: Manage attendance" ON attendance FOR ALL TO authenticated 
         return;
       }
 
-      // ── Step 2: Network / IP check via Edge Function ──
-      // We call the Supabase Edge Function which runs on the SERVER.
-      // The server reads the client's IP from the request headers.
-      // Because this check runs server-side, the browser CANNOT spoof it.
-      //
-      // If the student is NOT on the college network, the Edge Function
-      // returns HTTP 403 and we block the attendance insert entirely.
-      setKioskStatus('Checking network…', 'scanning');
-      try {
-        const ipRes = await fetch(IP_CHECK_URL, {
-          method: 'GET',
-          headers: {
-            // Supabase requires the API key in the Authorization header
-            // for Edge Function calls
-            'Authorization': `Bearer ${HARDCODED_KEY}`,
-            'apikey': HARDCODED_KEY,
-          },
-        });
-
-        if (!ipRes.ok) {
-          // Edge Function returned 403 — student is NOT on college network
-          setKioskStatus('Not on college network', 'error');
-          showResultCard(student, 'Must be on college WiFi to mark attendance', false);
-          setCooldown(4000); // Longer cooldown to let student read the message
-          return;
-        }
-        // ipRes.ok = true means HTTP 200 — student IS on college network, proceed
-
-      } catch (e) {
-        // Network error: Edge Function could not be reached at all
-        // (e.g. no internet connection, Supabase down)
-        setKioskStatus('Network check failed — try again', 'error');
-        setCooldown(2000);
+      // ── Step 2: Geo-fence check ──
+      // Verify this device is within the admin-defined GPS radius.
+      // If geo-fence is disabled or not set, this step is skipped.
+      setKioskStatus('Checking location…', 'scanning');
+      const geoResult = await checkGeoFence();
+      if (!geoResult.ok) {
+        setKioskStatus('Outside allowed area', 'error');
+        showResultCard(student, geoResult.message, false);
+        setCooldown(4000);
         return;
       }
 
       // ── Step 3: Insert attendance record into Supabase ──
-      // Only reached if the IP check passed above.
       const { error } = await S.sb.from('attendance').insert({
         student_id: student.id,
         date:       today,
@@ -1387,28 +1571,24 @@ CREATE POLICY "Admin: Manage attendance" ON attendance FOR ALL TO authenticated 
 
       if (error) {
         if (error.code === '23505') {
-          // PostgreSQL unique constraint violation:
-          // student already has an attendance row for today
-          // (must have been marked on a different device/session)
-          S.markedToday.add(student.id); // Sync the in-memory cache
+          S.markedToday.add(student.id);
           setKioskStatus('Already marked today', 'warn');
           showResultCard(student, 'Already marked today', false);
           setCooldown(1500);
         } else {
-          // Some other DB error (permissions, network, etc.)
           setKioskStatus('DB Error — try again', 'error');
         }
         return;
       }
 
       // ── Step 4: Success ──
-      S.markedToday.add(student.id); // Cache so next scan is instant (no DB check needed)
+      S.markedToday.add(student.id);
       setKioskStatus('Attendance marked!', 'success');
       showResultCard(student, `${student.department || 'Swift Club'} • ${timeNow}`, true);
-      flashCamera();           // Green flash on the viewfinder
-      playPing();              // Beep sound + notification banner
-      addRecentChip(student.name); // Add to bottom strip
-      setCooldown(2000);       // 2s pause before scanning again
+      flashCamera();
+      playPing();
+      addRecentChip(student.name);
+      setCooldown(2000);
     }
 
     // ════════════════════════════════════════════════════════════════
