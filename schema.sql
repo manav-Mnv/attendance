@@ -99,7 +99,7 @@ SET search_path = public
 AS $$
 BEGIN
   -- Verify the secret code
-  IF faculty_code != 'PARUL-FACULTY-2026' THEN
+  IF faculty_code != '2484' THEN
     RAISE EXCEPTION 'Invalid faculty code';
   END IF;
 
