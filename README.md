@@ -1,5 +1,7 @@
 # SwiftAttend — Facial Recognition Attendance System
 
+![Status](https://img.shields.io/badge/status-prototype-0969da?style=flat-square)
+
 **SwiftAttend** is a modern, real-time lab attendance system built on top of **face-api.js** and **Supabase**. It provides a sleek, terminal-inspired interface for enrolling students and marking attendance using advanced facial recognition.
 
 ## 🚀 Features
